@@ -24,4 +24,4 @@ Our initial comparison found that amPEPpy and AMPlify called more of the shuffle
 
 The aim is practical: help researchers spend their lab budget on candidates with stronger evidence behind them.
 
-[Try the app](https://huggingface.co/spaces/avaliev/oracle-audit) · [Watch the demo](https://github.com/Rebell-Leader/oracle-audit/blob/main/oracle_audit_video_revised.mp4) · [Code](https://github.com/Rebell-Leader/oracle-audit) · [Data](https://huggingface.co/datasets/avaliev/oracle-audit-amp-scores)
+[Try the app](https://huggingface.co/spaces/avaliev/oracle-audit) · [Watch the demo](https://drive.google.com/file/d/1idgrumJqcUbqA8D8fI3JtMnAefjvvfh0/view?usp=sharing) · [Code](https://github.com/Rebell-Leader/oracle-audit) · [Data](https://huggingface.co/datasets/avaliev/oracle-audit-amp-scores)

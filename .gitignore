@@ -3,3 +3,6 @@ __pycache__/
 # Intermediate clips and the machine-specific concat list are regenerated.
 media/overview_*.mp4
 media/revised_concat.txt
+
+# Downloaded AutoScientist checkpoint (225 MB archive, ~520 MB extracted) - fetch with the SDK instead.
+adaption/checkpoint/

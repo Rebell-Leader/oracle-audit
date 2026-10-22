@@ -58,5 +58,6 @@ checks to question a screening metric, then validate candidates experimentally.
 A Valency-assisted survey found no shuffle control mentioned in 30 relevant
 abstracts or in the five full texts inspected. That does not establish absence
 across the field. Marimo provides the browser notebook; Hugging Face hosts the
-app and dataset. The Adaption training run is exploratory and has no completed
-validation result in this repository.
+app and dataset. The Adaption training run has completed: best win rate 0.528 against a 0.70 target,
+and at chance on a 400-row held-out check (accuracy 0.488-0.500), collapsing to one
+label. It is reported as a failed attempt at the fix, not as a result.

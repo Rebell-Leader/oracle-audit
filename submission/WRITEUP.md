@@ -77,5 +77,8 @@ third-party models share the failures observed here.
 Release the controls and selection-depth curve alongside a generator's results.
 Check independent activity labels before recommending a model for screening.
 The score table, CLI and notebook make those comparisons inspectable. The Adaption
-fine-tuning run is a follow-up experiment; no completed validation result is
-included, so we do not present it as a demonstrated fix.
+fine-tuning run has since completed and did not produce a working oracle: best win
+rate 0.528 against a 0.70 target, and on 400 never-uploaded held-out rows it sits at
+chance (accuracy 0.488-0.500), collapsing to a single label, as does the base model.
+It inherits the unpaired-cohort limitation, so it is not evidence that sequence order
+is unlearnable. We do not present it as a demonstrated fix.

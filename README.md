@@ -106,6 +106,18 @@ No shuffled control was mentioned in those abstracts or found in those five text
 That is a result about this sample, not the entire field; see
 [the survey and its limits](lit/valency_claim.md).
 
+
+## Adaption fine-tune: outcome
+
+We fine-tuned `gemma-3-4b-it` (LoRA, 3,600 examples) to separate known AMPs from shuffle-cohort
+sequences — the discrimination the published oracles lack. The run completed with a best win rate
+of 0.528 against a 0.70 target, and on 400 never-uploaded held-out rows it sits at chance
+(accuracy 0.488-0.500) and collapses to a single label: `shuffled` for all 400 under the chat
+template, `real` for 72% under plain concatenation. The base model is equally at chance. This
+inherits the unpaired-cohort caveat above, so it is not evidence that sequence order is
+unlearnable. Details, the evaluation script and two checkpoint-loading pitfalls are in
+[`adaption/README.md`](adaption/README.md).
+
 ## Repository layout
 
 | Path | Contents |
@@ -136,8 +148,8 @@ AMP and non-AMP cohorts ([`media/analysis_verification.json`](media/analysis_ver
 - [Public app](https://huggingface.co/spaces/avaliev/oracle-audit)
 - [Dataset](https://huggingface.co/datasets/avaliev/oracle-audit-amp-scores)
 - [Build and verification notes](app/APP_NOTES.md)
-- [Revised overview video (2:30)](oracle_audit_video_revised.mp4)
-- [Voiced overview](oracle_audit_video_voice.mp4)
+- [Revised overview video (2:30)](media/oracle_audit_video_revised.mp4)
+- [Voiced overview](https://drive.google.com/file/d/1idgrumJqcUbqA8D8fI3JtMnAefjvvfh0/view?usp=sharing) on Google Drive (the published copy); in-repo: [`media/oracle_audit_video_voice.mp4`](media/oracle_audit_video_voice.mp4)
 - [Raw Chrome capture (60 seconds)](media/oracle_audit_app_capture.mp4)
 - [Recording instructions](submission/RECORD_VIDEO.md)
 

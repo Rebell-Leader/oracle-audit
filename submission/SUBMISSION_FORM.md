@@ -21,9 +21,9 @@
 
 **Summary:** https://github.com/Rebell-Leader/oracle-audit/blob/main/ONE_PAGER.md
 
-**Video:** [Revised overview, 2:30](https://github.com/Rebell-Leader/oracle-audit/blob/main/oracle_audit_video_revised.mp4)
+**Video:** https://drive.google.com/file/d/1idgrumJqcUbqA8D8fI3JtMnAefjvvfh0/view?usp=sharing (Google Drive, publicly viewable). In-repo copies: `media/oracle_audit_video_voice.mp4` (voiced) and `media/oracle_audit_video_revised.mp4` (2:30 silent).
 
-**Direct MP4:** https://raw.githubusercontent.com/Rebell-Leader/oracle-audit/main/oracle_audit_video_revised.mp4
+**Direct MP4 (mirror):** https://raw.githubusercontent.com/Rebell-Leader/oracle-audit/main/media/oracle_audit_video_revised.mp4
 
 The overview is silent; the voiceover script is provided in `VIDEO_SCRIPT.md`.
 

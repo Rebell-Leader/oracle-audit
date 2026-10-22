@@ -1,0 +1,43 @@
+{
+  "base_model_used": "google/gemma-3-4b-it",
+  "adapter": "adaption/checkpoint/extracted_mm",
+  "holdout_rows": 400,
+  "runs": [
+    {
+      "template": "chat",
+      "n": 400,
+      "accuracy": 0.4875,
+      "real_recall": 0.0,
+      "decoy_recall": 1.0,
+      "predicted_real_fraction": 0.0,
+      "model": "autoscientist_lora"
+    },
+    {
+      "template": "plain",
+      "n": 400,
+      "accuracy": 0.5,
+      "real_recall": 0.7171,
+      "decoy_recall": 0.2718,
+      "predicted_real_fraction": 0.7225,
+      "model": "autoscientist_lora"
+    },
+    {
+      "template": "chat",
+      "n": 400,
+      "accuracy": 0.4875,
+      "real_recall": 0.0244,
+      "decoy_recall": 0.9744,
+      "predicted_real_fraction": 0.025,
+      "model": "base"
+    },
+    {
+      "template": "plain",
+      "n": 400,
+      "accuracy": 0.51,
+      "real_recall": 0.7854,
+      "decoy_recall": 0.2205,
+      "predicted_real_fraction": 0.7825,
+      "model": "base"
+    }
+  ]
+}
