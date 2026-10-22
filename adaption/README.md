@@ -12,7 +12,7 @@ general-purpose model on exactly the contrast the published oracles fail.
 - **Run:** `google/gemma-3-4b-it`, training method `instruction`, max 3 iterations, target win rate
   0.70. Dataset `94df0d0b-85e7-43b6-aa1f-b572d6252cf3`, run `ac56c29d-78fa-4e01-95f9-91689f4d72fe`,
   launched 2026-10-22 21:16 UTC.
-- **Status at submission:** running (iteration 0 of 3 at the time of writing). The held-out set and
+- **Status at submission:** running — **iteration 1 of 3 complete, interim best win rate 0.520** (target 0.70) as of 2026-10-22 21:50 UTC. The held-out set and
   `score_holdout()` are included so the finished checkpoint can be scored with the audit's own sign
   test — real recall and decoy recall reported separately, which is the whole point: an oracle that
   calls everything antimicrobial (AMPredictor flags >99% of every cohort) scores well on one and not
