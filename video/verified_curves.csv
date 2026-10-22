@@ -1,0 +1,17 @@
+oracle,first_below,precision_at_100
+broad-classifier,693,1.0
+species-acinetobacterbaumannii-classifier,174,0.92
+species-escherichiacoli-classifier,574,1.0
+species-klebsiellapneumoniae-classifier,143,0.85
+species-pseudomonasaeruginosa-classifier,346,1.0
+species-staphylococcusaureus-classifier,471,1.0
+strains-acinetobacterbaumanniiatcc19606-classifier,91,0.74
+strains-escherichiacoliatcc25922-classifier,319,0.99
+strains-klebsiellapneumoniaeatcc700603-classifier,34,0.52
+strains-pseudomonasaeruginosaatcc27853-classifier,163,0.88
+strains-staphylococcusaureusatcc25923-classifier,305,1.0
+strains-staphylococcusaureusatcc33591-classifier,90,0.73
+strains-staphylococcusaureusatcc43300-classifier,43,0.6
+ampeppy,267,0.92
+amplify,242,0.9
+ampredictor,123,0.79

@@ -1,0 +1,36 @@
+{
+  "oracle_audit_app_capture.mp4": {
+    "programs": [],
+    "stream_groups": [],
+    "streams": [
+      {
+        "codec_name": "h264",
+        "width": 1920,
+        "height": 1080,
+        "r_frame_rate": "25/1"
+      }
+    ],
+    "format": {
+      "duration": "60.000000",
+      "size": "10825010"
+    },
+    "sha256": "f002a705d0b338f0a08a50beb65ad873b0e6b6f5e60b843e0b36e0dc877dbc7a"
+  },
+  "oracle_audit_video_revised.mp4": {
+    "programs": [],
+    "stream_groups": [],
+    "streams": [
+      {
+        "codec_name": "h264",
+        "width": 1920,
+        "height": 1080,
+        "r_frame_rate": "25/1"
+      }
+    ],
+    "format": {
+      "duration": "150.000000",
+      "size": "11850410"
+    },
+    "sha256": "d7ee41a1f3fd07180aa0b6e107682977aea6f0487126103582a8312b5c8746b3"
+  }
+}

@@ -28,36 +28,27 @@ def _(mo):
         r"""
     # Oracle Audit
 
-    ### Two families of in-silico AMP oracles disagree *in sign* about which peptides are antimicrobial. Pick one and watch it happen — then audit your own peptide against the mechanism.
+    ### Check a peptide scorer before using it to choose candidates.
 
-    Generative antimicrobial-peptide (AMP) design is scored almost entirely by
-    in-silico oracles — published sequence classifiers that return "probability of
-    being an AMP". Nobody wet-labs a million candidates, so the oracle *is* the
-    benchmark. This notebook audits the benchmark itself.
+    An antimicrobial peptide (AMP) is a short protein with measured antimicrobial
+    activity. Design tools often use a model score to choose which new peptides
+    to test. Here we check what those scores respond to.
 
-    The test is deliberately blunt. Take three cohorts whose labels nobody disputes:
+    We compare **2,000 known AMPs**, **2,000 sequences from a separate shuffle cohort**,
+    and **877 curated non-AMPs**. Shuffling preserves amino-acid composition and
+    length for each source peptide, but these two cohorts are **not paired**.
+    Only **87 of 2,000 compositions overlap**. Differences can reflect cohort
+    composition as well as order. The shuffles have not been tested in a lab.
 
-    * **real AMPs** — 2,000 curated, experimentally validated antimicrobials,
-    * **shuffled decoys** — the *same* 2,000 peptides with their residues permuted,
-      so amino-acid composition, length and net charge are preserved and only the
-      sequence order is destroyed,
-    * **curated non-AMPs** — 877 peptides annotated as non-antimicrobial.
+    At a score threshold of 0.5, amPEPpy calls **87.5% of shuffles** positive,
+    compared with **66.8% of known AMPs**. AMPlify shows a similar gap.
+    This raises a question about using these scores to select new sequences.
 
-    A usable oracle must rank real AMPs above both. Several widely cited ones do the
-    opposite: they flag **87.5%** of composition-matched shuffles and **66.8%** of
-    real AMPs. Design pipelines then select tens of thousands of sequences on exactly
-    that signal.
-
-    /// tip | How to read this
-    Nothing here is a screenshot. Every panel recomputes in your browser — 4,977
-    peptides x 16 oracles for the audit, plus an in-browser peptide analyser, an
-    order-2 Markov decoy generator and a 21-feature composition oracle that you can
-    point at any sequence you paste in.
-
-    **Sections.** 0 — the audit (pick an oracle, move the threshold).
-    1 — audit any peptide, with helical wheels and a 3D helix.
-    2 — generate decoys that fool the oracle.
-    3 — why the published oracles behave this way.
+    /// tip | Try the audit
+    Choose a scorer and threshold below. Then compare a peptide with its shuffle,
+    inspect an idealised helix, or generate new sequences with a simple sampler.
+    The explorer uses a **composition-only surrogate**, not the original amPEPpy
+    model. Model scores and geometric views do not establish biological activity.
     ///
     """
     )
@@ -185,10 +176,12 @@ def _(MIC_ORACLES, np):
         return float((v <= mic_cut).mean()) if oracle in MIC_ORACLES else float((v >= prob_cut).mean())
 
     def precision_curve(frame, oracle, pos_cohort, neg_cohort):
-        sub = frame[frame.cohort.isin([pos_cohort, neg_cohort])]
-        a = activity(sub, oracle)
-        y = (sub.cohort.to_numpy() == pos_cohort).astype(float)
-        order = np.argsort(-a, kind="stable")
+        pos = activity(frame[frame.cohort == pos_cohort], oracle)
+        neg = activity(frame[frame.cohort == neg_cohort], oracle)
+        a = np.concatenate([pos, neg])
+        y = np.concatenate([np.ones(len(pos)), np.zeros(len(neg))])
+        jitter = np.random.default_rng(0).permutation(len(a))
+        order = np.lexsort((jitter, -a))
         k = np.arange(1, len(y) + 1)
         prec = np.cumsum(y[order]) / k
         return k, prec
@@ -406,12 +399,12 @@ def _(
     _real, _dec, _non = (_rates[c] for c in REF_COHORTS)
     _inverted = _dec > _real
     _verdict = (
-        f"**SIGN INVERTED** - this oracle calls {_dec:.1%} of composition-preserving "
-        f"shuffled decoys antimicrobial but only {_real:.1%} of real AMPs. "
-        f"It ranks decoys **above** real AMPs, so selecting on it selects against the label."
+        f"**SIGN INVERTED** - this oracle calls {_dec:.1%} of separately sampled "
+        f"shuffle controls antimicrobial but only {_real:.1%} of real AMPs. "
+        f"More shuffles pass this threshold. This does not establish their activity."
         if _inverted
-        else f"**Ordering preserved** - real AMPs ({_real:.1%}) score above shuffled decoys "
-        f"({_dec:.1%}) and curated non-AMPs ({_non:.1%}) at this threshold."
+        else f"**No threshold inversion** - known AMPs: {_real:.1%}; shuffles: "
+        f"{_dec:.1%}; curated non-AMPs: {_non:.1%}. This alone does not validate the ranking."
     )
 
     mo.vstack(
@@ -448,10 +441,10 @@ def _(mo):
         r"""
     ### 0.1 Where the three cohorts land
 
-    If the oracle encodes antimicrobial *function*, the green distribution (real AMPs)
-    sits to the right of the pink one (its own shuffled decoys). If it encodes
-    composition only, the two distributions collapse onto each other — and in the
-    Family-B oracles the shuffles land to the *right*.
+    Green shows known AMPs; pink shows a separate shuffle cohort. Compare each model within
+    its own score scale. A difference in positive rates at one threshold does not
+    describe the full ranking. AMPredictor predicts MIC: lower values mean stronger
+    predicted activity, so its ranking direction is reversed.
     """
     )
     return
@@ -508,7 +501,7 @@ def _(
         .encode(x="x:Q")
     )
     mo.ui.altair_chart(
-        (_hist + _line).properties(height=300, title=f"Score distributions - {_o}"),
+        (_hist + _line).properties(width=920, height=300, title=f"Score distributions - {_o}"),
         chart_selection=False,
         legend_selection=False,
     )
@@ -519,19 +512,18 @@ def _(
 def _(mo):
     mo.md(
         r"""
-    ### 0.2 The panel that matters: precision vs selection depth
+    ### 0.2 How many candidates would you select?
 
-    Both families look fine at the top of a ranked list — the published papers report
-    precision@100, and at k=100 precision is 0.92 (amPEPpy), 0.90 (AMPlify) and 1.00
-    (OmegAMP broad). Real design pipelines do not stop at 100. The curve below screens
-    real AMPs out of a 50/50 pool against their own shuffled decoys: rank the 4,000
-    peptides by the selected oracle, descending, and plot precision@k.
+    Rank the 2,000 known AMPs and 2,000 shuffles together. Precision@100 is the
+    fraction of known AMPs among the first 100 sequences. It is 0.92 for amPEPpy,
+    0.90 for AMPlify and 1.00 for OmegAMP broad on this pool.
 
-    The marker is the depth at which precision first falls below 0.75 — the point
-    past which the oracle is no longer separating function from composition. It
-    arrives at k=265 for amPEPpy and k=240 for AMPlify but not until k=691 for the
-    OmegAMP broad classifier: a **2.6x** difference in usable selection depth, which
-    is the whole audit in one number.
+    This pool uses separately sampled cohorts, so it does not isolate sequence order.
+    The curve shows how that fraction changes as you select more sequences.
+    The marker is the **first depth at or after k=20 where precision is below 0.75**.
+    Ties use a fixed random permutation (seed 0), matching the CLI. This is a
+    reference-cohort measure, not a prediction of experimental success. It depends
+    on the pool composition; the threshold slider does not change this ranking.
     """
     )
     return
@@ -593,8 +585,8 @@ def _(
         [
             mo.ui.altair_chart(
                 alt.layer(*_layers).properties(
-                    height=320,
-                    title=f"{_o} (family {ORACLE_FAMILY[_o]}) - real AMPs vs their own shuffled decoys",
+                    width=920, height=320,
+                    title=f"{_o} - known AMPs vs separate shuffle cohort (unpaired)",
                 ),
                 chart_selection=False,
                 legend_selection=False,
@@ -606,7 +598,7 @@ def _(
                     mo.stat(
                         value=str(_kstar) if _kstar else ">4000",
                         label="k* (precision < 0.75)",
-                        caption="selection depth where the oracle stops working",
+                        caption="first crossing below the chosen reference floor",
                         bordered=True,
                     ),
                 ],
@@ -624,10 +616,9 @@ def _(mo):
         r"""
     ### 0.3 All 16 oracles at once
 
-    The same three positive rates and the same depth statistic, for every oracle in
-    both families. Sort by `k_star` to see the split: Family A (OmegAMP's
-    hard-negative-trained classifiers) holds precision hundreds of ranks deeper than
-    Family B, and only Family B inverts the sign.
+    Compare threshold rates and depth statistics for all models. The OmegAMP
+    heads target different species or strains and share a model family. Their
+    results should not be counted as independent replications.
     """
     )
     return
@@ -672,7 +663,7 @@ def _(
                     "k_star": _ks if _ks else 4000,
                     "verdict": "SIGN INVERTED"
                     if _r["ref_shuffled_decoys"] > _r["ref_MarLys_AMPs"]
-                    else "ordering preserved",
+                    else "no threshold inversion",
                 }
             )
     audit_table = pd.DataFrame(_rows).sort_values("k_star", ascending=False)
@@ -686,14 +677,13 @@ def _(audit_table, mo):
     mo.callout(
         mo.md(
             f"""
-    **At the thresholds currently set:** {len(_inv)} of {len(audit_table)} oracles rank
-    composition-preserving shuffled decoys above real AMPs
+    **At the thresholds currently set:** {len(_inv)} of {len(audit_table)} scorers call
+    a larger fraction of shuffles positive than known AMPs
     ({", ".join(_inv.oracle) if len(_inv) else "none"}).
     Median k* is {int(audit_table[audit_table.family == "A"].k_star.median())} for family A versus
     {int(audit_table[audit_table.family == "B"].k_star.median())} for family B.
-    A submission pipeline that took the top 50,000 of a 998,452-sequence pool by mean
-    percentile rank of amPEPpy + AMPredictor was therefore selecting at a depth where
-    those oracles are near chance on this contrast.
+    These depths describe this 4,000-sequence pool. They cannot be scaled directly
+    to a larger generated pool with a different proportion of active peptides.
     """
         ),
         kind="warn",
@@ -712,14 +702,13 @@ def _(mo):
     Paste a sequence, or draw one from the audit cohorts. Everything below is computed
     in your browser from the sequence string alone.
 
-    The two helical wheels are the scientific heart of this notebook. They show the
-    *same* residues — identical composition, identical length, identical net charge —
-    arranged in the real order and in a permuted order. An ideal alpha-helix advances
-    100 deg per residue, so order decides which residues share a face. The real AMP
-    usually shows a contiguous hydrophobic arc (shaded wedge, arrow = hydrophobic
-    moment direction); its shuffle usually does not. A composition-only oracle sees
-    nothing to distinguish them, and that is the whole mechanism behind the sign
-    inversion above.
+    The wheels place residues around an ideal alpha-helix, at 100 degrees per
+    residue. Colour shows hydrophobicity; the arrow shows the hydrophobic moment,
+    a measure of how unevenly hydrophobic residues are distributed around the helix.
+    Shuffling can change this pattern while leaving composition unchanged.
+
+    These are geometric illustrations. They do not predict folding or activity,
+    and some AMPs do not form alpha-helices.
     """
     )
     return
@@ -736,7 +725,7 @@ def _(EXAMPLES, mo):
         value="random real AMP",
         label="sequence source",
     )
-    draw_btn = mo.ui.button(label="draw another", value=0, on_click=lambda v: v + 1,
+    draw_btn = mo.ui.button(label="load a random real AMP", value=0, on_click=lambda v: v + 1,
                             kind="neutral")
     seq_input = mo.ui.text_area(
         value=EXAMPLES["real"][0],
@@ -816,10 +805,10 @@ def _(helical_wheel, mo, plt, query_seq, shuffle_seq, shuffle_seed):
     helical_wheel(_axes[0], query_seq, "sequence as given")
     helical_wheel(_axes[1], _shuf, "composition-preserving shuffle")
     _fig.suptitle(
-        "Same residues, same composition, same net charge — different amphipathic face",
+        "Same composition; a different arrangement around an ideal helix",
         fontsize=12,
     )
-    _fig.tight_layout()
+    _fig.tight_layout(rect=(0, 0, 1, 0.93))
     mo.vstack([mo.as_html(_fig), mo.md(f"Shuffled sequence: `{_shuf}`")])
     return
 
@@ -843,9 +832,9 @@ def _(
         [
             mo.hstack(
                 [
-                    mo.stat(value=f"{_s1:.4f}", label="composition oracle — as given",
+                    mo.stat(value=f"{_s1:.4f}", label="composition surrogate — as given",
                             caption="P(amPEPpy calls it AMP)", bordered=True),
-                    mo.stat(value=f"{_s2:.4f}", label="composition oracle — shuffled",
+                    mo.stat(value=f"{_s2:.4f}", label="composition surrogate — shuffled",
                             caption="P(amPEPpy calls it AMP)", bordered=True),
                     mo.stat(value=f"{abs(_s1 - _s2):.4f}", label="|difference|",
                             caption="composition features are identical", bordered=True),
@@ -858,12 +847,11 @@ def _(
             mo.callout(
                 mo.md(
                     f"""
-    The two composition-oracle scores differ by **{abs(_s1 - _s2):.4f}** — only because
-    the length feature is shared and the 20 amino-acid frequencies are *exactly* the
-    same vector for a permutation. mu_H, which depends on order, moves from
-    **{_m1:.3f}** to **{_m2:.3f}**. Any oracle whose decision is a function of
-    composition alone is mathematically incapable of telling these two peptides apart,
-    no matter how it is trained or how deep it is.
+    **Composition-only surrogate:** {_s1:.4f} for the original and {_s2:.4f} for
+    its shuffle. They match because the model receives the same amino-acid
+    frequencies and length. Hydrophobic moment changes from **{_m1:.3f}** to
+    **{_m2:.3f}** because it also depends on residue order. The surrogate was
+    trained to imitate amPEPpy calls; these are not amPEPpy predictions.
     """
                 ),
                 kind="info",
@@ -924,7 +912,8 @@ def _(helix_pdb, json, mo, query_seq, shuffle_seq, shuffle_seed):
             "<html><head>"
             '<script src="https://cdn.jsdelivr.net/npm/3dmol@2.4.2/build/3Dmol-min.js"></script>'
             "<style>body{margin:0;font-family:system-ui,sans-serif}"
-            ".row{display:flex;gap:8px}.cell{flex:1;position:relative;height:330px;"
+            ".row{display:flex;gap:16px}.row>div{flex:1;min-width:0}"
+            ".cell{width:100%;position:relative;height:330px;"
             "border:1px solid #ddd;border-radius:6px}"
             ".cap{font-size:12px;text-align:center;color:#444;padding:3px}"
             "#fallback{display:none;padding:14px;font-size:13px;color:#8a4b00;"
@@ -953,13 +942,12 @@ def _(mo):
         r"""
     ---
 
-    ## 2. Generate decoys that fool the oracle
+    ## 2. Generate control sequences
 
-    An order-2 Markov chain fitted to the 2,000 curated real AMPs (transition counts
-    embedded above; `^^` is the start context). It reproduces local residue statistics
-    and nothing else — no helix, no amphipathicity, no function. Sample from it, score
-    every sample with the composition-only oracle, and count how many a published
-    composition-driven classifier would call antimicrobial.
+    This order-2 Markov sampler chooses each residue from the preceding two,
+    using transition counts fitted to the 2,000 known AMPs. Score the samples
+    with the **composition-only surrogate** and compare them with known AMPs.
+    A high surrogate score does not show that a sample is active or inactive.
     """
     )
     return
@@ -1042,7 +1030,7 @@ def _(MIMIC, alt, gen_scores, gen_thresh, generated, mo, np, pd):
         .mark_area(opacity=0.45, interpolate="step")
         .encode(
             x=alt.X("score:Q", bin=alt.Bin(extent=[0, 1], maxbins=40),
-                    title="composition-only oracle score"),
+                    title="composition-only surrogate score"),
             y=alt.Y("count()", stack=None, title="peptides"),
             color=alt.Color(
                 "set:N",
@@ -1066,14 +1054,14 @@ def _(MIMIC, alt, gen_scores, gen_thresh, generated, mo, np, pd):
                 [
                     mo.stat(
                         value=f"{_n_called} of {_n_total}",
-                        label=f"would be called antimicrobial at p >= {gen_thresh.value:.2f}",
+                        label=f"pass surrogate threshold >= {gen_thresh.value:.2f}",
                         caption=f"{_n_called / max(_n_total, 1):.1%} of this Markov sample",
                         bordered=True,
                     ),
                     mo.stat(
                         value=f"{_real_called:.1%}",
                         label="same rate on the 2,000 real AMPs",
-                        caption="same oracle, same threshold",
+                        caption="same surrogate, same threshold",
                         bordered=True,
                     ),
                     mo.stat(
@@ -1088,19 +1076,19 @@ def _(MIMIC, alt, gen_scores, gen_thresh, generated, mo, np, pd):
             ),
             mo.ui.altair_chart(
                 (_hist + _rule).properties(
-                    height=280,
-                    title="Markov samples land on top of the real-AMP score distribution",
+                    width=920, height=280,
+                    title="Surrogate scores: generated sequences and known AMPs",
                 ),
                 chart_selection=False,
                 legend_selection=False,
             ),
             mo.md(
                 f"""
-    These {_n_total} sequences were drawn from residue statistics alone. They have no
-    designed helix and no amphipathic face, yet **{_n_called}** of them clear the
-    threshold that the published composition-driven oracle uses to declare a peptide
-    antimicrobial — against **{_real_called:.1%}** of experimentally validated AMPs.
-    That is what a generative pipeline optimising such an oracle is free to exploit.
+    **{_n_called} of {_n_total} samples** pass the composition-only surrogate's
+    threshold, compared with **{_real_called:.1%}** of known AMPs. This shows how
+    a simple sampler can obtain high surrogate scores. Neither these samples nor
+    their activity have been tested here, and the original amPEPpy model is not
+    running in this panel.
     """
             ),
             mo.download(
@@ -1128,7 +1116,7 @@ def _(generated, gen_scores, mo, pd):
     ).sort_values("comp_oracle_score", ascending=False)
     mo.vstack(
         [
-            mo.md("**The generated set, ranked by the oracle it is fooling** "
+            mo.md("**Generated sequences, ranked by the composition-only surrogate** "
                   "(paste any row into section 1 to see its wheel):"),
             mo.ui.table(_t, selection=None, page_size=10),
         ]
@@ -1142,11 +1130,13 @@ def _(mo):
         r"""
     ---
 
-    ## 3. Why the published oracles behave this way
+    ## 3. How much can composition explain?
 
     Fit a 21-feature logistic regression — the 20 amino-acid frequencies plus
     length/50, no order information whatsoever — to predict **amPEPpy's own binary
-    call**. If amPEPpy were reading function, a bag-of-residues model should fail.
+    call**. The stored results measure agreement with model calls, not activity.
+    Composition may carry biological signal; high agreement does not prove a
+    causal explanation of amPEPpy behaviour.
     """
     )
     return
@@ -1179,7 +1169,7 @@ def _(MIMIC, STATS, alt, mo, pd):
         alt.Chart(_d)
         .mark_circle(size=18, opacity=0.35)
         .encode(
-            x=alt.X("comp:Q", title="composition-only oracle score (21 features, in-browser)",
+            x=alt.X("comp:Q", title="composition-only surrogate score (21 features, in-browser)",
                     scale=alt.Scale(domain=[0, 1])),
             y=alt.Y("ampeppy:Q", title="amPEPpy score", scale=alt.Scale(domain=[0, 1])),
             color=alt.Color(
@@ -1237,25 +1227,20 @@ def _(STATS, mo):
     mo.callout(
         mo.md(
             f"""
-    ### The nuance, stated plainly
+    ### What the comparison can tell us
 
-    **The order-dependent signal does exist, and it is weak.** Hydrophobic moment
-    separates real AMPs from their own shuffles at AUROC **{_a['hydrophobic_moment']:.3f}**
-    (median mu_H **{_m['real']:.3f}** real vs **{_m['decoy']:.3f}** decoy). So the
-    contrast is real, but it is a thin edge, not a chasm — a classifier is not
-    negligent for finding it hard.
+    Hydrophobic moment separates known AMPs from the separate shuffle cohort at AUROC
+    **{_a['hydrophobic_moment']:.3f}** in the stored analysis. amPEPpy and AMPlify
+    score **{_a['ampeppy']:.3f}** and **{_a['amplify']:.3f}** on that same contrast.
+    An AUROC of 0.5 is chance ordering.
 
-    **What is not defensible is being on the wrong side of it.** On the same contrast
-    amPEPpy scores AUROC **{_a['ampeppy']:.3f}** and AMPlify **{_a['amplify']:.3f}** —
-    both *below* chance. They are not weakly right; they are consistently backwards.
+    OmegAMP broad is also near chance overall (**{_a['omegamp_broad']:.3f}**),
+    despite enriching known AMPs near the top of its ranking. Inspect both the
+    overall ranking and precision at the depth you plan to use.
 
-    **And AUROC is the wrong instrument here.** OmegAMP's broad classifier is
-    essentially at chance globally (**{_a['omegamp_broad']:.3f}**) yet is sharply
-    separating exactly where selection happens: its 95th percentile is
-    **{_p['real']:.4f}** on real AMPs and **{_p['decoy']:.4f}** on decoys. A global
-    rank statistic averages that away. The depth test in section 0.2 — precision@k as
-    k grows, and the depth k* where precision crosses 0.75 — is the diagnostic that
-    separates the two families, which is why it is the panel this audit is built on.
+    These results concern this reference set. Related OmegAMP heads are not
+    independent replications, and their low positive rates do not prove that
+    they are better activity predictors. Training-set overlap was not audited.
     """
         ),
         kind="warn",
@@ -1271,7 +1256,8 @@ def _(mo):
 
     ### Data provenance
 
-    Every number above is recomputed in-browser. The audit panels run from per-peptide
+    Rates, curves and sequence features recompute in-browser; surrogate training
+    statistics and AUROCs are stored offline results. The audit panels use per-peptide
     oracle scores embedded in this notebook (gzip + base64, ~260 kB); the explorer
     panels run from a second embedded blob (~0.2 MB of JSON) holding the Markov
     transition counts, the composition-oracle weights, the mimic scatter and the
@@ -1281,8 +1267,8 @@ def _(mo):
     helical wheels carry the same information.
 
     * **Peptides** — 4,977 sequences: 2,000 curated real AMPs, 2,000
-      composition-preserving shuffles of those same AMPs (residue permutation
-      preserves length, composition and net charge), 877 curated non-AMPs, and the
+      a separate shuffled-AMP cohort (only 87 compositions overlap with the known
+      AMP cohort; this is not a paired control), 877 curated non-AMPs, and the
       100 sequences of a real competition submission.
     * **Family A oracles (13)** — OmegAMP's hard-negative-trained classifiers: the
       broad classifier, 5 per-species and 7 per-strain heads. Scored probabilities.

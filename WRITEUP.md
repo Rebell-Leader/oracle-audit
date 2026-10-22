@@ -1,21 +1,81 @@
-Generative antimicrobial-peptide design is scored almost entirely by *in-silico oracles* — published AMP classifiers standing in for a wet-lab MIC assay. We audited 16 of them over 14,977 peptides and found that the three most widely used ones rank composition-preserving shuffled decoys **above** real curated AMPs (87.5% vs 66.8% flagged at $p \geq 0.5$), while hard-negative-trained classifiers order the same cohorts correctly. We release the two diagnostics that expose this, the full score dataset, an interactive notebook that recomputes the verdict live, and a launched fine-tuning run that tests the fix.
+# Oracle Audit: checking peptide selection scores
 
-## Approach
+> **Control-cohort correction:** The released known-AMP and shuffle cohorts were
+> sampled from different source files. Only 87 of 2,000 amino-acid compositions
+> overlap. The rates and depth curves below describe those separate cohorts;
+> they do not isolate sequence order. A genuinely paired, rescored experiment
+> is still needed. The explorer does construct an exact shuffle of each input.
+> The AMP/non-AMP cohorts also share 45 exact sequences with conflicting labels.
+> Training-source overlap is documented; exact checkpoint split overlap is unresolved.
 
-Take 2,000 real curated AMPs and shuffle each one: identical amino-acid composition, sequence order destroyed. A scorer that tracks antimicrobial activity should separate the two sets; a scorer that tracks composition cannot. We ran that contrast — plus 877 curated non-AMPs and five generator pools — through 16 oracles from two methodological families: 13 hard-negative-trained classifiers (OmegAMP's broad/species/strain set) and the 3 published classifiers the field actually cites (amPEPpy, AMPlify, AMPredictor), 9 cohorts in total.
 
-We packaged the audit as two diagnostics that run against any scorer: a **sign test** (does the oracle rank decoys above real positives at a given threshold?) and a **depth test** (precision as a function of selection depth $k$, and the $k$ at which it falls below a floor). Literature grounding came from the **Valency Bond** MCP connector; the interactive front end is a **marimo** notebook exported to WASM; and the constructive follow-up — can a model learn the discrimination the published oracles lack? — is a LoRA fine-tune launched on **Adaption** AutoScientist.
+Peptide generators can produce many sequences. Prediction models help choose
+which ones to test, but a high prediction score is not evidence of activity.
+We built a small audit to check what those selection scores respond to.
+
+## Method
+
+The released table contains 14,977 peptides from nine cohorts scored by 16 models.
+Our main comparison uses 2,000 curated antimicrobial peptides (AMPs), 2,000
+separately sampled shuffled-AMP sequences, and 877 curated non-AMPs.
+Shuffling changes residue order while preserving composition and length. The
+shuffled sequences have not been assayed and may retain activity.
+
+Two diagnostics answer different questions. The threshold comparison, called the
+“sign test” in the code, asks whether a larger fraction of shuffles than known
+AMPs pass a chosen cutoff. It is descriptive, not a significance test. The depth
+curve ranks the 4,000 AMP/shuffle sequences and reports the fraction of known AMPs
+among the first k entries. We record the first depth at or after k=20 where this
+fraction falls below 0.75, using seed-0 random tie breaking.
 
 ## Results
 
-**The two families disagree in sign.** At $p \geq 0.5$, amPEPpy flags 87.5% of shuffled decoys and 77.8% of curated non-AMPs but only 66.8% of real AMPs; AMPlify 87.6 / 79.8 / 65.8. OmegAMP's broad classifier orders the same cohorts correctly: 0.0% / 0.3% / 14.4%. Across all 16 oracles the split is clean — **3 of 3 published oracles are sign-inverted, 13 of 13 hard-negative oracles are not**. ProtGPT2 samples are rejected by both families, so the published oracles are not simply permissive: they are specifically blind to composition-preserving shuffles.
+At score ≥0.5, amPEPpy calls 87.5% of shuffles and 66.8% of known AMPs positive;
+AMPlify calls 87.6% and 65.8%. Their rates on curated non-AMPs are 77.8% and 79.8%.
+OmegAMP broad gives 0.0%, 14.4% and 0.3% on those cohorts respectively. Its low
+known-AMP rate limits what this threshold comparison alone establishes.
 
-**Selection depth explains why this survived review.** Screening real AMPs out of a 4,000-sequence 50/50 pool against the decoys, the oracles look comparable at the depth their papers report (precision@100 = 0.92 amPEPpy, 0.90 AMPlify, 1.00 OmegAMP broad; AMPredictor already 0.79). They separate deeper: precision falls below 0.75 at $k = 265$ and $k = 240$ for the published oracles versus $k = 691$ for the hard-negative classifier — a 2.6x gap in usable depth, invisible at the reported depth. AMPredictor never clears the floor; it flags >99% of every cohort, real or shuffled. Real campaigns select far deeper than $k = 100$: one pipeline we examined took the top 50,000 of 998,452 candidates ranked by amPEPpy + AMPredictor.
+Precision@100 on the balanced AMP/shuffle pool is 0.92 for amPEPpy, 0.90 for
+AMPlify and 1.00 for OmegAMP broad. Their first crossings below 0.75 occur at
+k=267, 242 and 693. This shows why a shallow summary can miss differences deeper
+in a ranked list. It does not translate directly to hit rates in a generated pool.
 
-**Why it happens.** If a verdict is a function of composition, shuffles are invisible to it by construction. A 21-feature model (amino-acid frequencies + length) trained to predict amPEPpy's own binary call reproduces it at AUROC 0.945 (gradient boosting; 0.868 logistic, the version embedded in the app): the oracle is largely a composition detector. Order carries real but weak signal — the Eisenberg hydrophobic moment separates real AMPs from their shuffles at AUROC 0.574 — and the published oracles sit below chance on it (amPEPpy 0.405, AMPlify 0.417). OmegAMP's broad classifier is also near chance globally (0.477) but sharply separating at the top of its ranking (95th percentile 0.994 vs 0.028), which is why the depth test rather than AUROC is the diagnostic that distinguishes these oracles.
+AMPredictor outputs predicted MIC, where lower is better. Using the correct
+direction, its precision@100 is 0.79 and its first crossing is k=123. At MIC ≤16 µM,
+48.8% of known AMPs and 50.5% of shuffles pass. Earlier probability-based
+AMPredictor results and the claim that it never clears the floor were incorrect.
 
-**The field does not run this check.** Of 30 Valency-screened papers that generate and evaluate AMPs in silico, 0 report any composition-preserving decoy control; in the 5 most-cited whose methods we read, every third-party oracle applied (AMPlify, CAMPR3-rf, STM, CAMP, AMP Scanner, Macrel) belongs to the single inverted family. More than one oracle is not more than one oracle family. Screening of the other 25 is abstract-level, so "oracle not named" means not stated, not not used.
+## Interactive demonstration
 
-## Next steps
+The marimo notebook recomputes rates and curves from stored model scores.
+Its sequence explorer runs a separate composition-only logistic surrogate, trained
+to imitate amPEPpy's calls. The stored held-out AUROC is 0.868; an offline gradient
+boosting fit reports 0.945. Neither value measures biological accuracy, and the
+full fitting procedure and split indices are not included for independent refitting.
 
-The prescription is one line: filter deep with hard-negative-trained classifiers, use the published oracles only as a shallow final re-rank, and hold out one oracle from each family as a cross-family control with a shuffled-decoy cohort reported alongside. The Adaption AutoScientist run (gemma-3-4b-it, 3,600 train / 400 held out) was still training at submission (iteration 1 of 3 complete, interim best win rate 0.520 against a 0.70 target), and its checkpoint will be scored with the audit's own sign test — real recall and decoy recall separately — rather than accuracy alone. The same two diagnostics transfer directly to other generative-biology benchmarks whose scoring function is a learned classifier; peptide binders and enzyme-activity predictors are the obvious next targets.
+A peptide and its shuffle receive the same surrogate score because the input
+features are identical. Helical wheels and idealised 3D helices show how residue
+order can change the hydrophobic pattern. These are illustrations, not folding
+predictions. The Markov sampler generates new control sequences and scores them
+with the surrogate, not the original amPEPpy model.
+
+## Evidence limits
+
+The 13 OmegAMP models are related broad, species and strain heads. They are not
+13 independent replications. A threshold contrast does not prove a causal benefit
+from hard-negative training. We have not audited training overlap or assayed the
+shuffles, and the choice of cohort mixture and tie rule affects depth results.
+
+The Valency-assisted literature survey screened 30 relevant abstracts and inspected
+five full texts. No shuffled control was mentioned in those abstracts or found in
+those five texts. That finding is limited to the checked records and text coverage.
+It does not show that the entire field omitted the control, or that untested
+third-party models share the failures observed here.
+
+## Use and follow-up
+
+Release the controls and selection-depth curve alongside a generator's results.
+Check independent activity labels before recommending a model for screening.
+The score table, CLI and notebook make those comparisons inspectable. The Adaption
+fine-tuning run is a follow-up experiment; no completed validation result is
+included, so we do not present it as a demonstrated fix.

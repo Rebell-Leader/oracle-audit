@@ -1,0 +1,56 @@
+{
+  "browser": "Google Chrome headless",
+  "viewport": [
+    1920,
+    1080
+  ],
+  "source": "local corrected WASM export",
+  "trim_start": 16.664483656990342,
+  "duration": 60,
+  "fps": 25,
+  "3d_canvas_rendered": true,
+  "page_errors": [],
+  "shots": [
+    {
+      "name": "title",
+      "time": 0.0
+    },
+    {
+      "name": "load_peptide",
+      "time": 5.002
+    },
+    {
+      "name": "helix",
+      "time": 12.002
+    },
+    {
+      "name": "compare_wheels",
+      "time": 17.001
+    },
+    {
+      "name": "surrogate_scores",
+      "time": 22.001
+    },
+    {
+      "name": "change_oracle",
+      "time": 26.001
+    },
+    {
+      "name": "threshold",
+      "time": 35.001
+    },
+    {
+      "name": "generate",
+      "time": 41.001
+    },
+    {
+      "name": "depth",
+      "time": 48.999
+    },
+    {
+      "name": "provenance",
+      "time": 55.001
+    }
+  ],
+  "webm": "/tmp/oracle-audit-recordings/page@4c178a13a715a36f039755268bdaf251.webm"
+}

@@ -1,39 +1,61 @@
-# Recording instructions for a browser agent
+# Record the Oracle Audit notebook
 
-Goal: a screen recording of the live Oracle Audit app, to be cut into the submission video in place of
-the static app screenshot. Target length **45-60 seconds**, no narration (voiceover is added later).
+Deliver a **60-second silent app capture**, 1920×1080, 25 fps, H.264.
+Narration is supplied separately in VIDEO_SCRIPT.md. A 2:30 overview combines
+context and corrected charts with this capture.
 
-## Setup
+## Source and setup
 
-- URL: **https://huggingface.co/spaces/avaliev/oracle-audit**
-  (direct, no HF chrome: https://avaliev-oracle-audit.static.hf.space/)
-- Viewport **1920x1080**, browser zoom 100%, cursor visible, no extensions/overlays.
-- The app is a marimo WASM notebook: it boots Pyodide on load. **Wait until the first plot renders
-  before starting the recording** (roughly 10-25 s). Do not record the loading spinner.
-- Record at 25-30 fps to `oracle_audit_app_capture.mp4` (H.264).
+Record the corrected local WASM export, served at `http://127.0.0.1:8765/`.
+The public HF app was checked, but has not been updated with these revisions.
+Do not record its superseded scientific claims for the revised submission.
 
-## Shot list (hold each state still for the stated time — slow, deliberate moves)
+```bash
+python -m http.server 8765 --bind 127.0.0.1 --directory app/site
+uv run --with numpy --with pandas --with marimo==0.25.0 --with altair \
+  --with matplotlib --with playwright python video/record_walkthrough.py
+```
 
-1. **(5 s)** Top of the notebook: title and the intro paragraph. Scroll smoothly to the peptide explorer.
-2. **(12 s)** *Audit any peptide*: click **load a random real AMP**. Let the helical wheel, the 3D helix
-   and the metrics render. Hold 3 s. Then **rotate the 3D helix** with one slow drag (about 180 degrees)
-   so the amphipathic face is visible. Hold 2 s.
-3. **(10 s)** Still in the explorer: compare the sequence against its shuffle — hold on the two
-   side-by-side helical wheels for 4 s (this is the money shot: identical composition, different face),
-   then hold 3 s on the two composition-oracle scores showing they barely differ.
-4. **(10 s)** *Oracle selector*: open the dropdown, select **ampeppy**. Hold on the verdict panel until
-   "SIGN INVERTED" is clearly legible (3 s). Then switch to **broad-classifier** and hold on the
-   corrected ordering (3 s).
-5. **(8 s)** Drag the **threshold slider** from 0.5 down to ~0.2 and back, so the verdict and the cohort
-   rates visibly recompute. Hold at the end state 2 s.
-6. **(10 s)** *Generate decoys*: set n to a few hundred with the slider, let the Markov sampler run, and
-   hold on the "N of M generated peptides would be called antimicrobial" counter and the histogram.
-7. **(8 s)** *Depth curve*: hold on the precision-vs-k plot with the 0.75 floor line and the k markers.
-8. **(5 s)** Scroll to the provenance footer and stop.
+The script uses `/usr/bin/google-chrome` in headless mode. It requires Playwright's
+FFmpeg helper (`playwright install ffmpeg`) and system `ffmpeg` for H.264 output.
+It waits for Pyodide, controls and plots, then trims startup from the output.
+Viewport and device scale remain fixed. A small pointer follows actual mouse
+coordinates because headless Chrome does not capture an operating-system cursor.
+No app values, chart contents or results are replaced for the recording.
 
-## Notes
+## Shot plan
 
-- If the 3D viewer does not load, skip step 2's rotation and spend that time on the helical wheels instead.
-- Mouse movement between shots should be slow; sudden jumps read badly at 1080p.
-- Do not resize the window mid-recording (marimo re-lays-out and plots re-render).
-- Deliver the raw capture; it will be cut into the submission video — no titles or transitions needed.
+Times include scrolling and interactions; small timing shifts are recorded in
+the capture manifest. The old shot list summed to 78 seconds despite specifying
+a 45–60 second target; this version fits the requested one-minute capture.
+
+| Approx. time | Action |
+|---|---|
+| 0–5 s | Hold the title and short explanation, including the cohort limitation. |
+| 5–12 s | Scroll to the explorer; load a random real AMP; hold the wheels. |
+| 12–17 s | Show the idealised 3D views and slowly drag the first helix. |
+| 17–22 s | Return to the side-by-side helical wheels. |
+| 22–26 s | Hold the identical composition-surrogate scores and feature comparison. |
+| 26–35 s | Select amPEPpy, hold SIGN INVERTED; select OmegAMP broad, hold its rates. |
+| 35–41 s | Drag the threshold down near 0.2, then back to 0.5; let rates recompute. |
+| 41–49 s | Generate a few hundred sequences; hold the surrogate counter and histogram. |
+| 49–55 s | Hold the full-width depth curve and 0.75 reference line. |
+| 55–60 s | Scroll to provenance and stop. |
+
+The shuffled reference cohort is separately sampled, not paired to the known-AMP
+cohort. The explorer constructs an exact shuffle of the entered sequence. The
+sampler uses a surrogate, not the original amPEPpy model. Keep those distinctions
+in the narration and captions. The threshold slider changes rates, not the
+full-pool ranking curve.
+
+## Outputs and checks
+
+- `oracle_audit_app_capture.mp4`: raw silent capture, no title cards or transitions.
+- `oracle_audit_video_revised.mp4`: 2:30 silent overview with charts and live capture.
+- `video/capture_manifest.json`: timings, source, viewport and browser errors.
+- `video/capture_*.png`: checkpoints for visual review.
+- `video/build_overview.py`: reproducible chart and overview assembly.
+
+Check the encoded video with `ffprobe`, decode it with `ffmpeg`, and inspect
+frames from the actual MP4 before delivery. A screenshot of the page alone does
+not verify framing or timing in the encoded video.

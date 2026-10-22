@@ -1,23 +1,52 @@
-# OSI Hackathon 2026 — submission form answers
+# OSI Hackathon 2026 — submission answers
 
-**Project title:** Oracle Audit — the benchmark that scores shuffled decoys above real antimicrobial peptides
+> **Control-cohort correction:** The released known-AMP and shuffle cohorts were
+> sampled from different source files. Only 87 of 2,000 amino-acid compositions
+> overlap. The rates and depth curves below describe those separate cohorts;
+> they do not isolate sequence order. A genuinely paired, rescored experiment
+> is still needed. The explorer does construct an exact shuffle of each input.
+> The AMP/non-AMP cohorts also share 45 exact sequences with conflicting labels.
+> Training-source overlap is documented; exact checkpoint split overlap is unresolved.
+
+
+**Project title:** Oracle Audit — checking the models that select antimicrobial peptides
+
 **Bucket:** Hypothesis Generation and Evaluation
+
 **Code:** https://github.com/Rebell-Leader/oracle-audit
-**Live interactive app (no login):** http://sciway.me/oracle-audit/
+
+**App:** https://huggingface.co/spaces/avaliev/oracle-audit
+
 **Dataset:** https://huggingface.co/datasets/avaliev/oracle-audit-amp-scores
-**One-page summary:** https://github.com/Rebell-Leader/oracle-audit/blob/main/ONE_PAGER.md
-**Video:** (post publicly, paste link here)
 
-**Two-sentence summary.** In-silico AMP classifiers are the de-facto scoring function for generative
-peptide design; we audited 16 of them over 14,977 peptides and found the three most widely used ones
-rank composition-preserving shuffled decoys *above* real curated AMPs (87.5% vs 66.8% at p>=0.5), while
-hard-negative-trained classifiers order the same cohorts correctly. We release the two diagnostics that
-expose this (a sign test and a selection-depth test, runnable against any scorer), the full score
-dataset, and an interactive marimo notebook that recomputes the verdict live.
+**Summary:** https://github.com/Rebell-Leader/oracle-audit/blob/main/ONE_PAGER.md
 
-**Sponsor tracks used.**
-- **Valency (Bond MCP):** literature grounding — `semantic_search_papers` (8 queries) and
-  `search_by_abstract` (4 queries) over 221 corpus records; 45 screened, 30 generative+in-silico, 0 of
-  30 reporting a composition-preserving decoy control. Table: `lit/oracle_practice_survey.csv`.
-- **Marimo:** the interactive audit notebook, exported to WASM and served with no login or server.
-- **Hugging Face:** the audit dataset released as a public dataset with a data card.
+**Video:** [Revised overview, 2:30](https://github.com/Rebell-Leader/oracle-audit/blob/main/oracle_audit_video_revised.mp4)
+
+**Direct MP4:** https://raw.githubusercontent.com/Rebell-Leader/oracle-audit/main/oracle_audit_video_revised.mp4
+
+The overview is silent; the voiceover script is provided in `VIDEO_SCRIPT.md`.
+
+**Two-sentence summary.** We checked 16 peptide scoring models across 14,977
+sequences and found that amPEPpy and AMPlify call a larger fraction of a separately
+sampled shuffle cohort positive than the known-AMP cohort at a 0.5 threshold.
+We release the scores, two reusable diagnostics and an interactive notebook to
+inspect threshold behaviour and selection depth; shuffled controls are untested,
+so the results do not establish biological inactivity or experimental hit rates.
+
+**Sponsor tools used in the project.**
+
+- **Valency Bond:** literature search; 30 relevant abstracts and five full texts
+  checked for shuffled controls. See `lit/valency_claim.md` for scope and limits.
+- **Marimo:** interactive notebook and browser export.
+- **Hugging Face:** public app and dataset hosting.
+- **Adaption:** exploratory fine-tuning run; no completed validation result included.
+
+**Evidence limits.** Only 87/2,000 compositions overlap between the two reference
+cohorts; 45 exact sequences also carry conflicting AMP/non-AMP cohort labels.
+The controls occur in OmegAMP negative-data source pools, while exact checkpoint
+training membership remains unverified. These are exploratory results, not a
+paired experiment or an independent validation of OmegAMP generalisation.
+
+The repository contains the revised materials and local app exports. The public
+HF app and dataset have not been redeployed as part of this update.

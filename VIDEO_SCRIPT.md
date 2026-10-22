@@ -1,57 +1,62 @@
-# Oracle Audit — video script (v2, matches oracle_audit_video.mp4, 3:44)
+# Oracle Audit — revised voiceover and edit plan
 
-Silent cut; add voiceover on top. Beats below are the exact slide boundaries in the encoded file.
-A browser-agent recording of the live app (see RECORD_VIDEO.md) can replace the 2:54-3:18 slide.
+Target: about 2½ minutes at a calm pace. The app capture is silent, as requested
+in RECORD_VIDEO.md. This script is ready for a human voiceover; the original MP4
+contains a silent audio track and no recorded narration to transcribe.
 
-## 0:00-0:14 — Title
-"Oracle Audit. Every generative model for antimicrobial peptides is scored by the same thing: a
-published classifier standing in for a wet-lab assay. We asked a simple question about those classifiers."
+## 0:00–0:20 — Question
 
-## 0:14-0:46 — The shuffle test
-"Take two thousand real, curated antimicrobial peptides. Now shuffle each one — same amino acids,
-same composition, order destroyed. Those shuffles are not peptides anyone believes are active.
-Then ask the field's standard oracles which set looks antimicrobial."
+“Peptide design tools can generate thousands of candidates. A scoring model helps
+choose which ones to test. We asked a simple question: does that score respond to
+sequence order, or mostly to the amino acids in the sequence?”
 
-## 0:46-1:22 — The inversion
-"amPEPpy calls 87.5 percent of the shuffles antimicrobial, and only 66.8 percent of the real peptides.
-AMPlify agrees: 87.6 against 65.8. It also flags 78 percent of curated non-AMPs. The oracle ranks the
-decoys above the real thing. The sign is inverted."
+## 0:20–0:45 — Control and result
 
-## 1:22-1:44 — Not universal
-"This is not a statement about classifiers in general. On exactly the same three cohorts, OmegAMP's
-hard-negative-trained classifier orders them correctly: zero percent of shuffles, nought-point-three
-percent of non-AMPs, 14 percent of real AMPs. Across all sixteen oracles the split is clean — three of
-three published oracles inverted, thirteen of thirteen hard-negative oracles correct."
+“We compared two thousand known antimicrobial peptides with a separate cohort of
+two thousand shuffled-AMP sequences. These cohorts were sampled independently;
+they are not matched pairs, so this comparison does not isolate sequence order. At a threshold of point
+five, amPEPpy calls eighty-seven point five percent of shuffles positive, compared
+with sixty-six point eight percent of known AMPs. AMPlify shows a similar gap.
+The shuffled sequences have not been tested in a lab, so they are not proven negatives.”
 
-## 1:44-2:24 — Selection depth
-"Here is why this survived peer review. At precision-at-100 — the depth these papers report — the
-oracles look comparable: nought-point-nine-two, nought-point-nine-oh, one-point-zero. They only diverge
-deeper down the ranking, where real campaigns actually select. Precision falls below 0.75 at k equals
-265 and 240 for the published oracles, against 691 for the hard-negative classifier. And AMPredictor
-never clears the floor at all — it flags over ninety-nine percent of every cohort, real or shuffled.
-One pipeline we examined took the top fifty thousand of nine hundred ninety-eight thousand candidates
-ranked by two of these oracles."
+## 0:45–1:05 — Depth
 
-## 2:24-2:54 — The mechanism
-"Why does this happen? Shuffles preserve composition exactly, so an oracle that is really a composition
-detector cannot see them. That is measurable: a twenty-one-feature model — amino-acid frequencies and
-length — trained to predict amPEPpy's own call reproduces it at an AUROC of nought-point-nine-four-five.
-Order does carry signal; the hydrophobic moment separates real from shuffled at nought-point-five-seven.
-The published oracles sit below chance on it."
+“We also ask what happens when you select more sequences. In a balanced pool of
+known AMPs and separately sampled shuffle controls, amPEPpy has ninety-two percent known AMPs in its top hundred.
+That fraction falls as selection goes deeper. The notebook lets you inspect the
+whole curve, rather than relying on one number near the top.”
 
-## 2:54-3:18 — What we built
-"So we packaged the audit. A sign test and a depth test that run against any scorer. The interactive
-version lets you paste a peptide and see its helical wheel and 3D amphipathic face beside its shuffle:
-hydrophobic moment nought-point-seven-one versus nought-point-zero-three, and the composition oracle
-gives both the identical score of nought-point-eight-eight. There is a Markov decoy generator built in —
-a trivial order-two chain produces peptides the oracle calls antimicrobial at nearly the real-AMP rate."
+## 1:05–2:05 — Live notebook (use the 60-second capture)
 
-## 3:18-end — Close
-"The dataset — fourteen thousand nine hundred seventy-seven peptides by sixteen oracles — is released
-with a data card. Our recommendation to benchmark designers: filter deep with hard-negative-trained
-classifiers, use the published oracles only as a shallow final re-rank, and always hold out one oracle
-from each family as a cross-family control. Thanks for watching."
+“Here is the audit in the browser. First, load a known peptide and compare it with
+its shuffle. The helical wheels show how residue order changes the hydrophobic
+pattern around an ideal helix. The three-dimensional view is an illustration,
+not a prediction of the folded structure.
 
-## Valency line (drop in anywhere, 8 s)
-"We surveyed the literature through Valency Bond: of thirty screened papers that generate and score AMPs
-in silico, zero report any composition-preserving decoy control."
+“The composition-only surrogate gives both sequences the same score because it
+receives the same features. This surrogate imitates amPEPpy calls; it is not the
+original model.
+
+“Now switch the scoring model. amPEPpy calls more shuffles positive. OmegAMP broad
+shows the opposite contrast at this threshold, although it also misses most known
+AMPs. Moving the threshold changes the call rates.
+
+“The simple sampler generates more control sequences. These are scored by the
+surrogate, so high scores do not show that the original model is fooled. Finally,
+the depth curve shows the fraction of known AMPs as we select more candidates.”
+
+## 2:05–2:30 — Scope and release
+
+“We release scores for fourteen thousand nine hundred and seventy-seven sequences
+from sixteen models, plus the notebook and reusable checks. The reference cohorts
+are unpaired, forty-five sequences have conflicting cohort labels, and checkpoint
+training overlap remains unresolved. Next, reconcile those labels and score exact
+paired controls. Use independent activity data before trusting a score to choose
+experiments.”
+
+## Editing notes
+
+Keep each chart readable. Use the new recording rather than the composed preview
+image. Do not reuse the old figures: they reverse AMPredictor's direction and
+contain superseded depth values. The revised overview is silent with readable
+on-screen captions; add the voiceover above in the final audio edit if desired.

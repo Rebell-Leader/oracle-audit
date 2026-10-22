@@ -1,47 +1,62 @@
-# Oracle Audit — the benchmark that scores shuffled decoys above real antimicrobial peptides
+# Oracle Audit
 
-**OSI Hackathon 2026 · bucket: Hypothesis Generation and Evaluation · solo team**
-Code: https://github.com/Rebell-Leader/oracle-audit · Live app: http://sciway.me/oracle-audit/ ·
-Dataset: https://huggingface.co/datasets/avaliev/oracle-audit-amp-scores
+> **Control-cohort correction:** The released known-AMP and shuffle cohorts were
+> sampled from different source files. Only 87 of 2,000 amino-acid compositions
+> overlap. The rates and depth curves below describe those separate cohorts;
+> they do not isolate sequence order. A genuinely paired, rescored experiment
+> is still needed. The explorer does construct an exact shuffle of each input.
+> The AMP/non-AMP cohorts also share 45 exact sequences with conflicting labels.
+> Training-source overlap is documented; exact checkpoint split overlap is unresolved.
 
-![Oracle Audit figure](oracle_audit_figure.png)
 
-## Motivation
-Generative design of antimicrobial peptides (AMPs) is evaluated almost entirely by *in-silico oracles* —
-published AMP classifiers standing in for a wet-lab MIC assay. Leaderboards, competition rankings and
-"novel AMP discovered" claims rest on them. Nobody audits the oracle.
+**Check the scoring model before selecting peptides.**
 
-## Problem definition
-We ran the simplest possible validity check on 16 oracles from two methodological families, over 9
-cohorts totalling 14,977 peptides: take 2,000 real curated AMPs, shuffle each one (same amino-acid
-composition, order destroyed), and ask whether the oracle still separates real from shuffled.
+OSI Hackathon 2026 · Hypothesis Generation and Evaluation
 
-## What we found
-**The two families disagree in sign.** At p >= 0.5, amPEPpy flags 87.5% of shuffled decoys and 77.8% of
-curated non-AMPs but only 66.8% of real AMPs; AMPlify 87.6 / 79.8 / 65.8. They rank decoys *above* the
-real thing. OmegAMP's hard-negative-trained classifier orders the same cohorts correctly: 0.0% / 0.3% /
-14.4%. Across all 16 oracles, 3 of 3 Family-B oracles are sign-inverted and 13 of 13 Family-A are not.
-A useful control: ProtGPT2 samples are rejected by both families, so Family B is not simply permissive —
-it is specifically blind to composition-preserving shuffles.
+[Code](https://github.com/Rebell-Leader/oracle-audit) ·
+[App](https://huggingface.co/spaces/avaliev/oracle-audit) ·
+[Data](https://huggingface.co/datasets/avaliev/oracle-audit-amp-scores)
 
-**Selection depth explains why this survived review.** At the published precision@100 depth the oracles
-look comparable (0.92 amPEPpy, 0.90 AMPlify, 1.00 OmegAMP broad; AMPredictor 0.79). Precision falls
-below 0.75 at k = 265 and k = 240 for the published oracles, versus k = 691 — a 2.6x gap in usable depth,
-invisible at the reported depth. Real campaigns select far deeper: one pipeline we examined took the top
-50,000 of 998,452 candidates ranked by amPEPpy + AMPredictor.
+## Problem
 
-**The field does not run this check.** Via the Valency Bond connector: of 30 screened papers that
-generate and evaluate AMPs in silico, 0 report any composition-preserving decoy control; of the 5
-most-cited whose methods we read, every third-party oracle applied belongs to the inverted family.
+Peptide design tools use prediction scores to choose candidates for lab testing.
+We ask whether those scores distinguish known antimicrobial peptides (AMPs) from
+shuffled versions containing exactly the same amino acids.
 
-## What we built (all released)
-1. `oracle_audit.py` — a **sign test** and a **depth test** that run against any scorer, as a module and CLI.
-2. The **audit dataset** — per-peptide scores, 14,977 sequences x 16 oracles x 9 cohorts, with a data card.
-3. An **interactive marimo notebook** (WASM, no login, no server): pick an oracle, move the threshold,
-   watch the verdict and depth curve recompute live.
+## Test and result
 
-## Recommendation
-Filter deep with hard-negative-trained classifiers; use published oracles only as a shallow final
-re-rank; always hold out one oracle per family as a cross-family control and report a
-shuffled-decoy cohort. Benchmarks now being designed for generative peptide discovery can adopt this in
-an afternoon — the audit is 40 lines of code against any scorer.
+We collected scores for 14,977 peptides from 16 models. The main comparison uses
+2,000 curated AMPs, a separately sampled 2,000-sequence shuffle cohort, and 877 curated non-AMPs.
+
+At a 0.5 threshold, amPEPpy calls **87.5% of shuffles** positive versus **66.8% of
+known AMPs**. AMPlify gives **87.6% versus 65.8%**. OmegAMP broad gives **0.0% versus
+14.4%**, while missing most known AMPs at that threshold.
+
+Ranking a 50/50 AMP/shuffle pool shows why selection depth matters. Precision@100
+is 0.92, 0.90 and 1.00 respectively. The first depth below 0.75, checking from k=20,
+is **267, 242 and 693** with a fixed random tie rule. These fractions measure known
+AMP enrichment, not experimental success.
+
+AMPredictor is a MIC regressor: lower is better. At MIC ≤16 µM, 48.8% of known AMPs
+and 50.5% of shuffles pass. Treating its outputs as probabilities is incorrect.
+
+## Deliverables
+
+A CLI and notebook provide two checks: compare positive rates at a chosen threshold,
+and plot precision over selection depth. The dataset includes all 239,632 scores.
+The browser explorer compares a peptide and its shuffle with helical wheels and
+an idealised helix. A composition-only surrogate illustrates why identical
+composition produces identical scores. A Markov sampler supplies new controls.
+
+## Limits and practical use
+
+Shuffles are untested controls, not confirmed negatives. Related OmegAMP heads are
+not independent experiments, and training overlap has not been audited. The
+surrogate imitates model calls; it does not predict measured activity. Use these
+checks to question a screening metric, then validate candidates experimentally.
+
+A Valency-assisted survey found no shuffle control mentioned in 30 relevant
+abstracts or in the five full texts inspected. That does not establish absence
+across the field. Marimo provides the browser notebook; Hugging Face hosts the
+app and dataset. The Adaption training run is exploratory and has no completed
+validation result in this repository.

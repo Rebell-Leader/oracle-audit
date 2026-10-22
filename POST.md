@@ -1,22 +1,28 @@
-Generative antimicrobial-peptide design is scored by in-silico oracles — published classifiers standing in for a wet-lab assay.
+We built Oracle Audit to check the models used to select antimicrobial peptides.
 
-So we ran the simplest check there is. Take 2,000 real curated AMPs. Shuffle each one: same amino acids, order destroyed. Ask the oracles which set looks antimicrobial.
+> **Control-cohort correction:** The released known-AMP and shuffle cohorts were
+> sampled from different source files. Only 87 of 2,000 amino-acid compositions
+> overlap. The rates and depth curves below describe those separate cohorts;
+> they do not isolate sequence order. A genuinely paired, rescored experiment
+> is still needed. The explorer does construct an exact shuffle of each input.
+> The AMP/non-AMP cohorts also share 45 exact sequences with conflicting labels.
+> Training-source overlap is documented; exact checkpoint split overlap is unresolved.
 
-amPEPpy flags 87.5% of the shuffles and 66.8% of the real peptides. AMPlify: 87.6% vs 65.8%. They rank the decoys ABOVE the real thing.
 
-It isn't classifiers in general — hard-negative-trained classifiers order the same cohorts correctly (0.0% decoys / 14.4% real AMPs). Across 16 oracles: 3/3 published oracles sign-inverted, 13/13 hard-negative oracles fine.
+Compare 2,000 known AMPs with 2,000 separately sampled shuffled-AMP sequences.
+At a score threshold of 0.5, amPEPpy calls 87.5% of shuffles positive versus 66.8% of
+known AMPs. AMPlify shows a similar gap. The shuffles are untested controls, not
+confirmed inactive peptides, but the contrast raises a useful question about
+what these scores reward.
 
-Why nobody caught it: at precision@100 — the depth these papers report — everything looks fine. The families only diverge deeper, where real campaigns actually select: precision breaks at k=265 and k=240 vs k=691. One pipeline we examined took the top 50,000 of 998,452 candidates ranked by two of the inverted oracles.
+A second check plots the fraction of known AMPs as we select more sequences from
+a ranked AMP/shuffle pool. Models that look similar near the top can differ deeper
+in the list.
 
-And the field doesn't run the check: of 30 generative-AMP papers screened via Valency Bond, 0 report a composition-preserving decoy control.
+For the OSI Hackathon we released 14,977 peptides × 16 model scores, reusable
+diagnostics, and a browser notebook with a sequence explorer and control sampler.
+The explorer uses a composition-only surrogate; its scores do not establish activity.
 
-Oracle Audit, built for the Open Scientific Intelligence Hackathon 2026:
-- sign test + depth test, runnable against any scorer
-- 14,977 peptides x 16 oracles released with a data card
-- an interactive audit that recomputes the verdict live in your browser
-
-Code: https://github.com/Rebell-Leader/oracle-audit
-Data: https://huggingface.co/datasets/avaliev/oracle-audit-amp-scores
-Live app: https://huggingface.co/spaces/avaliev/oracle-audit
-
-#MachineLearning #ProteinDesign #AMP #OpenScience
+[Code](https://github.com/Rebell-Leader/oracle-audit) ·
+[Data](https://huggingface.co/datasets/avaliev/oracle-audit-amp-scores) ·
+[App](https://huggingface.co/spaces/avaliev/oracle-audit)

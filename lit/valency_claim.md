@@ -8,9 +8,13 @@ All counts below are counts of papers *we actually screened*. Nothing is extrapo
 1. We screened **45** distinct Valency-corpus records (2019-2026) returned by eight semantic and four abstract-FTS queries on generative antimicrobial-peptide design, of which **30** both generate candidate peptide sequences and evaluate them in silico.
 2. Of those 30 generative papers, only **2** name any in-silico evaluation oracle in the abstract and **2** indicate two or more independent classifier families; the remaining **28** (93%) do not state their evaluation oracle in the abstract at all — we record this as "not stated in abstract" rather than guessing.
 3. **0 of 30** abstracts mention any negative or decoy control for the in-silico evaluation, and **none** mentions a composition-preserving shuffled- or scrambled-sequence control.
-4. For the **5** most-cited generative papers in the set we retrieved full text (one further paper, Multi-CGAN, was closed-access and could not be checked): **5/5** score their candidates with their own internal classifier or discriminator, **2/5** additionally apply published third-party oracles (HydrAMP: AMPlify, CAMPR3-rf, STM; AMP-Designer: CAMP, AMP Scanner, Macrel) — all of which are conventionally-trained AMP classifiers, i.e. the same oracle family our audit shows ranks shuffled decoys above real AMPs — and **0/5** apply a composition-preserving shuffled/scrambled-sequence control.
+4. For the **5** most-cited generative papers in the set we retrieved full text (one further paper, Multi-CGAN, was closed-access and could not be checked): **5/5** score their candidates with their own internal classifier or discriminator, **2/5** additionally apply published third-party oracles (HydrAMP: AMPlify, CAMPR3-rf, STM; AMP-Designer: CAMP, AMP Scanner, Macrel) — these include AMPlify, which was tested here; the remaining named third-party classifiers were not tested by this audit — and **0/5** apply a composition-preserving shuffled/scrambled-sequence control.
 
-**Interpretation for the audit:** "more than one oracle" is not the same as "more than one oracle family". In the five full texts we checked, every published oracle applied belongs to a single methodological family (conventionally-trained AMP classifiers trained against generic non-AMP negatives); no paper we screened reports the composition-preserving shuffled-decoy contrast on which the two oracle families in our audit disagree in sign.
+**Interpretation:** Checking several models can be useful, but model count alone
+does not establish independent evidence. This survey does not demonstrate that
+the untested third-party classifiers have the same behaviour as amPEPpy or AMPlify.
+The checked abstracts and five methods excerpts contained no shuffled control;
+we cannot infer absence from all other sections of the remaining papers.
 
 ## Evidence limits (read before quoting)
 

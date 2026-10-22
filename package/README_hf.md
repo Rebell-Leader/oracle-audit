@@ -26,7 +26,7 @@ pretty_name: Oracle Audit - AMP evaluation-oracle score set
 | `protgpt2` | 2,000 | ProtGPT2 autoregressive protein LM samples, length-filtered to AMP range |
 | `esm2_gibbs` | 2,000 | ESM-2 masked-LM Gibbs sampling from AMP-like seeds |
 | `ref_MarLys_AMPs` | 2,000 | **positive reference**: curated real antimicrobial peptides |
-| `ref_shuffled_decoys` | 2,000 | **hard decoy reference**: per-sequence random permutations of the curated real AMPs — identical amino-acid composition and length, destroyed sequence order. A valid AMP oracle must score these *below* the real AMPs; a composition-only oracle cannot tell them apart |
+| `ref_shuffled_decoys` | 2,000 | **separate shuffle reference**: sampled from OmegAMP shuffled-AMP data, independently of the known-AMP cohort. Only 87/2,000 compositions overlap; these are not paired controls. These are untested controls, not experimentally confirmed negatives; a composition-only model cannot distinguish a peptide from its own shuffle |
 | `ref_nonAMPs` | 877 | **negative reference**: curated non-antimicrobial peptides |
 | `submitted_top100` | 100 | the top-100 peptides actually submitted to a real AMP design competition, selected from a 998,452-sequence pool by mean percentile rank of amPEPpy + AMPredictor |
 
@@ -40,10 +40,13 @@ Sequence IDs are `<cohort>_<5-digit index>` and preserve the row order of the so
 strains). Scores are activity probabilities in [0, 1]. These models were trained with
 composition-matched/shuffled hard negatives in the negative set.
 
-**Family B — widely-used published classifiers (3 columns).** `ampeppy` (amPEPpy, random-forest
-AMP classifier), `amplify` (AMPlify, attentive BiLSTM), `ampredictor` (AMPredictor, graph/feature
-hybrid, score here used as an antimicrobial probability). Scores are probabilities in [0, 1];
-conventional decision threshold p >= 0.5.
+**Family B — published scorers (3 columns).** `ampeppy` and `amplify`
+return AMP probabilities in [0, 1], thresholded at ≥0.5. `ampredictor` is a
+MIC regressor: its raw outputs are not probabilities, and lower is better.
+The audit uses MIC ≤16 µM for calls and ascending raw MIC for ranking.
+AMPredictor's upstream model is described in
+[the authors' repository](https://github.com/ruihan-dong/AMPredictor) and
+[paper](https://elifesciences.org/articles/97330).
 
 ## Known caveats
 
@@ -53,15 +56,41 @@ conventional decision threshold p >= 0.5.
    licences of the underlying models govern reuse of the models themselves, and anyone
    redistributing the weights must consult each original licence. Cohort sequences derive from
    public curated AMP databases and from the generative models named above.
-2. **`ampredictor` saturates.** It assigns p >= 0.5 to >99% of every cohort including curated
-   non-AMPs, so its threshold-level positive rate carries almost no information; its depth-test
-   curve is the informative diagnostic.
+2. **AMPredictor correction.** Earlier materials treated MIC as a probability
+   and ranked it backwards. Corrected: 48.8% known AMPs and 50.5% shuffles pass
+   MIC ≤16 µM; precision@100 is 0.79, and the first precision<0.75 crossing
+   from k=20 is 123. The old saturation claim is withdrawn.
 3. **Scores are not calibrated across families.** Family A probabilities are far lower in absolute
    terms than Family B's for the same peptide. Compare *ranks and orderings within an oracle*, not
    raw values across oracles.
 4. **Shuffled decoys are a composition control, not a biological negative.** A shuffle can in
-   principle be active; the claim this dataset supports is about *ordering* (real AMPs should
-   outrank their own shuffles on average), not about any single decoy.
+   principle be active; these separately sampled cohorts support descriptive rate and ranking
+   comparisons, not isolation of sequence order or a claim about any single control.
 5. **Tie handling.** Several oracles produce heavily tied scores. `depth_test` breaks ties with a
-   fixed random permutation (seed 0), which is the conservative choice; precision@k values can
-   shift by a few percent under a different tie rule.
+   fixed random permutation (seed 0), matching the notebook. Results can change under a different tie rule.
+   The first failing depth is checked from k=20; a curve may recover later.
+
+6. **Evidence coverage.** Exact checkpoint hashes, source database versions, the
+   score-generation pipeline and a training-overlap audit are not included in this
+   release. The metadata above records the project's stated provenance, not an
+   independently reproduced model inference run. The 13 OmegAMP heads are related
+   models; threshold-rate ordering does not establish experimental accuracy.
+
+7. **Unpaired reference cohorts.** The source cohort builder independently samples
+   positives from `amp-challenge-2027/data/antibacterial.fasta` and controls from
+   `OmegAMP/data/activity-data/synthetic-data/shuffled-AMP-sequences.fasta`.
+   Only 87 of 2,000 composition signatures match as multisets. These contrasts
+   confound cohort composition with sequence order. Use `--require-paired` to
+   reject such input for a paired audit. Source excerpt and hashes are recorded
+   in `SUBMISSION_REVIEW.md`.
+
+8. **Conflicting reference labels.** There are 45 exact sequences shared by the
+   released AMP and non-AMP reference cohorts. Also, 861/877 non-AMP references
+   appear in the full antibacterial source library. Activity definitions across
+   assays, strains and cutoffs have not been harmonised; do not assume clean
+   binary ground truth from these file labels.
+9. **OmegAMP source-pool reuse.** All 2,000 shuffle and 877 non-AMP references are
+   present in negative-data pools read by OmegAMP's dataset builder; 197 reference
+   AMPs occur in its curated-positive pool. This establishes source-pool overlap,
+   not membership in the exact fitted checkpoint training split. See
+   `source_provenance.json` and the source-project follow-up in SUBMISSION_REVIEW.md.

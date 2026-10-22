@@ -1,0 +1,68 @@
+{
+  "source_project": "/home/obi/AMP_challenge",
+  "source_files": {
+    "amp_reference": {
+      "path": "amp-challenge-2027/data/antibacterial.fasta",
+      "sha256": "cbbeac64ba95746d87961e8ad9dd0849ae8058d15a300b2e7f6990730ca521e9",
+      "records": 39448,
+      "unique_sequences": 39448
+    },
+    "omegamp_curated_positive": {
+      "path": "OmegAMP/data/activity-data/curated-AMPs.fasta",
+      "sha256": "1de799e96e770a7a04cb7e396e921be429ae44cc16dcdb886af29a98fb95002b",
+      "records": 4080,
+      "unique_sequences": 4080
+    },
+    "omegamp_shuffle_source": {
+      "path": "OmegAMP/data/activity-data/synthetic-data/shuffled-AMP-sequences.fasta",
+      "sha256": "9d3f09e99d62173bfca08efd3a87802f2eede8dccc3d1a4482e4a0c8c0da31c4",
+      "records": 100000,
+      "unique_sequences": 100000
+    },
+    "omegamp_curated_negative": {
+      "path": "OmegAMP/data/activity-data/curated-Non-AMPs.fasta",
+      "sha256": "a00af1cfcc8d97e315bf7af85691865bd153178551b702ee2ce7eef6fdac9be7",
+      "records": 913,
+      "unique_sequences": 913
+    }
+  },
+  "cohorts": {
+    "ref_MarLys_AMPs": {
+      "n": 2000,
+      "exact_membership_in_source_pools": {
+        "amp_reference": 2000,
+        "omegamp_curated_positive": 197,
+        "omegamp_shuffle_source": 3,
+        "omegamp_curated_negative": 45
+      }
+    },
+    "ref_shuffled_decoys": {
+      "n": 2000,
+      "exact_membership_in_source_pools": {
+        "amp_reference": 1,
+        "omegamp_curated_positive": 0,
+        "omegamp_shuffle_source": 2000,
+        "omegamp_curated_negative": 0
+      }
+    },
+    "ref_nonAMPs": {
+      "n": 877,
+      "exact_membership_in_source_pools": {
+        "amp_reference": 861,
+        "omegamp_curated_positive": 6,
+        "omegamp_shuffle_source": 0,
+        "omegamp_curated_negative": 877
+      }
+    }
+  },
+  "composition_multiset_overlap": 87,
+  "exact_overlap_between_reference_amp_and_nonamp_cohorts": 45,
+  "overlap_examples": [
+    "APAAGFFGMR",
+    "CVRVRLNNRRRGLKISLQVC",
+    "EPFKISIHLGGY",
+    "FFWQRNIRIRR",
+    "FLGALIPAAIGLISGLIKK"
+  ],
+  "limits": "Source-pool membership does not prove membership in the exact checkpoint training split. Conflicting cohort labels require assay/strain/threshold reconciliation; file labels alone do not resolve biological activity."
+}

@@ -1,0 +1,5 @@
+__pycache__/
+*.pyc
+# Intermediate clips and the machine-specific concat list are regenerated.
+video/overview_*.mp4
+video/revised_concat.txt
