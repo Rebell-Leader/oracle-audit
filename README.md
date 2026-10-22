@@ -68,8 +68,8 @@ The score table contains raw MIC outputs for this model.
   across nine cohorts. See the [data card](package/DATA_CARD.md).
 - [Interactive notebook](app/oracle_audit_app.py): change scorer and threshold,
   compare a sequence with its exact shuffle, and sample new control sequences.
-- [Submission overview](ONE_PAGER.md), [writeup](WRITEUP.md),
-  [voiceover script](VIDEO_SCRIPT.md) and [review](SUBMISSION_REVIEW.md).
+- [Submission overview](submission/ONE_PAGER.md), [writeup](submission/WRITEUP.md),
+  [voiceover script](submission/VIDEO_SCRIPT.md) and [review of this submission](submission/SUBMISSION_REVIEW.md).
 
 ```bash
 uv run --with numpy --with pandas python package/oracle_audit.py \
@@ -106,14 +106,40 @@ No shuffled control was mentioned in those abstracts or found in those five text
 That is a result about this sample, not the entire field; see
 [the survey and its limits](lit/valency_claim.md).
 
+## Repository layout
+
+| Path | Contents |
+|---|---|
+| [`package/`](package) | Diagnostics, CLI, tests, released score table, data card, provenance check |
+| [`app/`](app) | The marimo notebook, its assets and the exported WASM bundle |
+| [`lit/`](lit) | Valency Bond literature survey and its stated limits |
+| [`adaption/`](adaption) | Hard-negative fine-tune: data builder, held-out set, run record |
+| [`docs/`](docs) | GitHub Pages copy of the exported app |
+| [`submission/`](submission) | Hackathon entry copy: overview, writeup, post, form answers, review, scripts |
+| [`media/`](media) | Video build scripts, captured stills and verification records |
+
+## Reproduce the checks
+
+```bash
+python -m pytest package/test_oracle_audit.py -q          # 8 unit tests on the diagnostics
+python media/verify_analysis.py                           # notebook curves vs the released table
+python package/check_source_provenance.py <source-project> # cohort overlap and source membership
+```
+
+The last verification run recorded all 16 notebook curves matching the CLI across 14,977 rows,
+87 overlapping compositions between the reference cohorts, and 45 sequences shared between the
+AMP and non-AMP cohorts ([`media/analysis_verification.json`](media/analysis_verification.json),
+[`package/source_provenance.json`](package/source_provenance.json)).
+
 ## Links and build
 
 - [Public app](https://huggingface.co/spaces/avaliev/oracle-audit)
 - [Dataset](https://huggingface.co/datasets/avaliev/oracle-audit-amp-scores)
 - [Build and verification notes](app/APP_NOTES.md)
 - [Revised overview video (2:30)](oracle_audit_video_revised.mp4)
-- [Raw Chrome capture (60 seconds)](oracle_audit_app_capture.mp4)
-- [Recording instructions](RECORD_VIDEO.md)
+- [Voiced overview](oracle_audit_video_voice.mp4)
+- [Raw Chrome capture (60 seconds)](media/oracle_audit_app_capture.mp4)
+- [Recording instructions](submission/RECORD_VIDEO.md)
 
 Public deployments may lag the revised local files. No remote publication is
 performed by the recording workflow.
@@ -125,5 +151,5 @@ and non-AMP reference cohorts**. All shuffle and non-AMP references also occur i
 negative-data source pools read by OmegAMP's dataset builder; exact checkpoint
 training membership remains unverified. These findings require label and split
 reconciliation before stronger validation claims. See the
-[source-project follow-up](SUBMISSION_REVIEW.md#source-project-follow-up-23-october)
+[source-project follow-up](submission/SUBMISSION_REVIEW.md#source-project-follow-up-23-october)
 and [reproducible provenance check](package/check_source_provenance.py).

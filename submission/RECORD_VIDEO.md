@@ -50,8 +50,8 @@ full-pool ranking curve.
 
 ## Outputs and checks
 
-- `oracle_audit_app_capture.mp4`: raw silent capture, no title cards or transitions.
-- `oracle_audit_video_revised.mp4`: 2:30 silent overview with charts and live capture.
+- `media/oracle_audit_app_capture.mp4`: raw silent capture, no title cards or transitions.
+- `oracle_audit_video_revised.mp4` (repo root): 2:30 silent overview with charts and live capture.
 - `video/capture_manifest.json`: timings, source, viewport and browser errors.
 - `video/capture_*.png`: checkpoints for visual review.
 - `video/build_overview.py`: reproducible chart and overview assembly.

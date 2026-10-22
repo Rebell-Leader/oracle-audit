@@ -82,7 +82,7 @@ AMPredictor's upstream model is described in
    Only 87 of 2,000 composition signatures match as multisets. These contrasts
    confound cohort composition with sequence order. Use `--require-paired` to
    reject such input for a paired audit. Source excerpt and hashes are recorded
-   in `SUBMISSION_REVIEW.md`.
+   in `SUBMISSION_REVIEW.md` (in the GitHub repository, under `submission/`).
 
 8. **Conflicting reference labels.** There are 45 exact sequences shared by the
    released AMP and non-AMP reference cohorts. Also, 861/877 non-AMP references
@@ -93,4 +93,4 @@ AMPredictor's upstream model is described in
    present in negative-data pools read by OmegAMP's dataset builder; 197 reference
    AMPs occur in its curated-positive pool. This establishes source-pool overlap,
    not membership in the exact fitted checkpoint training split. See
-   `source_provenance.json` and the source-project follow-up in SUBMISSION_REVIEW.md.
+   `source_provenance.json` and the source-project follow-up in submission/SUBMISSION_REVIEW.md.

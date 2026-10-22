@@ -65,7 +65,7 @@ async def main():
             await locator.click()
 
         async def evidence(name):
-            await page.screenshot(path=str(ROOT / "video" / f"capture_{name}.png"))
+            await page.screenshot(path=str(ROOT / "media" / f"capture_{name}.png"))
 
         await shot("title")
         await evidence("title")
@@ -174,12 +174,12 @@ async def main():
                     "source": "local corrected WASM export", "trim_start": trim_start,
                     "duration": 60, "fps": 25, "3d_canvas_rendered": has_3d,
                     "page_errors": errors, "shots": shots, "webm": str(webm)}
-        (ROOT/'video'/'capture_manifest.json').write_text(json.dumps(manifest, indent=2))
+        (ROOT/'media'/'capture_manifest.json').write_text(json.dumps(manifest, indent=2))
         subprocess.run(['ffmpeg', '-y', '-v', 'error', '-ss', str(trim_start), '-i', str(webm),
                         '-t', '60', '-vf', 'fps=25,tpad=stop_mode=clone:stop_duration=1',
                         '-c:v', 'libx264', '-crf', '18',
                         '-pix_fmt', 'yuv420p', '-an', '-movflags', '+faststart',
-                        str(ROOT/'oracle_audit_app_capture.mp4')], check=True)
+                        str(ROOT/'media/oracle_audit_app_capture.mp4')], check=True)
         print(json.dumps(manifest), flush=True)
 
 

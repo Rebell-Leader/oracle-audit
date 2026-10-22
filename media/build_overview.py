@@ -48,7 +48,7 @@ def charts():
     ax.legend(loc='upper center', bbox_to_anchor=(.5,1.17), ncols=2, frameon=False,
               labelcolor=FG, fontsize=22)
     fig.tight_layout()
-    fig.savefig(ROOT/'video/rates.png', facecolor=BG)
+    fig.savefig(ROOT/'media/rates.png', facecolor=BG)
     plt.close(fig)
 
     fig, ax = plt.subplots(figsize=(15.2, 5.5), dpi=120)
@@ -65,7 +65,7 @@ def charts():
     ax.spines[['top','right']].set_visible(False)
     ax.legend(frameon=False, fontsize=18, labelcolor=FG, loc='lower left')
     fig.tight_layout()
-    fig.savefig(ROOT/'video/depth.png', facecolor=BG)
+    fig.savefig(ROOT/'media/depth.png', facecolor=BG)
     plt.close(fig)
 
     # Replace the superseded submission figure, including its package copy.
@@ -75,7 +75,7 @@ def charts():
     font = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 34)
     draw.text((60,25), 'Oracle Audit: exploratory comparisons of separate reference cohorts', font=font, fill=FG)
     for path, y in [('rates.png',100),('depth.png',800)]:
-        im = Image.open(ROOT/'video'/path).convert('RGB')
+        im = Image.open(ROOT/'media'/path).convert('RGB')
         canvas.paste(im,((1920-im.width)//2,y))
     draw.text((60,1490),'Unpaired cohorts; shuffles unassayed. Depth values use seed-0 ties and k ≥ 20.',font=font,fill=FG)
     canvas.save(ROOT/'oracle_audit_figure.png')
@@ -116,7 +116,7 @@ def slides_html():
     content = '<!doctype html><meta charset="utf-8"><style>'+css+'</style>'
     for i,(kicker,title,body,foot) in enumerate(pages):
         content += f'<section id="s{i}"><div class="kicker">{kicker}</div><h1>{title}</h1>{body}<footer>{foot}</footer></section>'
-    (ROOT/'video/overview.html').write_text(content)
+    (ROOT/'media/overview.html').write_text(content)
 
 
 async def render_slides():
@@ -124,26 +124,26 @@ async def render_slides():
         browser = await p.chromium.launch(executable_path='/usr/bin/google-chrome',headless=True,
                                          args=['--no-sandbox','--disable-dev-shm-usage'])
         page = await browser.new_page(viewport={'width':1920,'height':1080},device_scale_factor=1)
-        await page.goto((ROOT/'video/overview.html').as_uri())
+        await page.goto((ROOT/'media/overview.html').as_uri())
         await page.evaluate('document.fonts.ready')
         for i in range(4):
-            await page.locator(f'#s{i}').screenshot(path=str(ROOT/f'video/overview_{i}.png'))
+            await page.locator(f'#s{i}').screenshot(path=str(ROOT/f'media/overview_{i}.png'))
         await browser.close()
 
 
 def encode():
     paths=[]
     for i,duration in enumerate([20,25,20,25]):
-        dst=ROOT/f'video/overview_{i}.mp4'
-        subprocess.run(['ffmpeg','-y','-v','error','-loop','1','-i',str(ROOT/f'video/overview_{i}.png'),
+        dst=ROOT/f'media/overview_{i}.mp4'
+        subprocess.run(['ffmpeg','-y','-v','error','-loop','1','-i',str(ROOT/f'media/overview_{i}.png'),
                         '-t',str(duration),'-r','25','-c:v','libx264','-preset','fast','-crf','18',
                         '-pix_fmt','yuv420p','-an',str(dst)],check=True)
         paths.append(dst)
-    order=paths[:3]+[ROOT/'oracle_audit_app_capture.mp4']+paths[3:]
-    concat=ROOT/'video/revised_concat.txt'
+    order=paths[:3]+[ROOT/'media/oracle_audit_app_capture.mp4']+paths[3:]
+    concat=ROOT/'media/revised_concat.txt'
     concat.write_text(''.join(f"file '{x}'\n" for x in order))
     subprocess.run(['ffmpeg','-y','-v','error','-f','concat','-safe','0','-i',str(concat),
-                    '-c','copy','-movflags','+faststart',str(ROOT/'oracle_audit_video_revised.mp4')],check=True)
+                    '-c','copy','-movflags','+faststart',str(ROOT/'media/oracle_audit_video_revised.mp4')],check=True)
     print('Created oracle_audit_video_revised.mp4 (150 seconds, silent)',flush=True)
 
 

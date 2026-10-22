@@ -23,7 +23,7 @@ CSV. Python recomputes rates and curves; it does not run the original checkpoint
 The known-AMP and shuffle cohorts were sampled independently. Only 87 of 2,000
 compositions overlap. Their rates and depth curves are exploratory cohort
 comparisons, not an exact composition-matched experiment. The explorer's own
-sequence/shuffle comparison is exact. See `../SUBMISSION_REVIEW.md`.
+sequence/shuffle comparison is exact. See `../submission/SUBMISSION_REVIEW.md`.
 
 AMPredictor returns raw predicted MIC: lower is better. Its default positive
 cutoff is MIC ≤16 µM. All other models use score ≥0.5 by default. Changing a call

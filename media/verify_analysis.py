@@ -33,5 +33,5 @@ for oracle in raw.columns[4:]:
 report = {"cells": len(outputs), "curves_matching_cli": len(results),
           "composition_overlap": matched, "reference_cohorts_paired": False, "rows": len(raw)}
 print(report)
-Path("video/analysis_verification.json").write_text(json.dumps(report, indent=2))
-pd.DataFrame(results).to_csv("video/verified_curves.csv", index=False)
+(Path(__file__).resolve().parent / "analysis_verification.json").write_text(json.dumps(report, indent=2))
+pd.DataFrame(results).to_csv(Path(__file__).resolve().parent / "verified_curves.csv", index=False)
