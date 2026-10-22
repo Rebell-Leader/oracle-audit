@@ -1,0 +1,17 @@
+file '/home/obi/AMP_challenge/osi_hackathon/video/s1.png'
+duration 15
+file '/home/obi/AMP_challenge/osi_hackathon/video/s2.png'
+duration 35
+file '/home/obi/AMP_challenge/osi_hackathon/video/s3.png'
+duration 40
+file '/home/obi/AMP_challenge/osi_hackathon/video/s4.png'
+duration 25
+file '/home/obi/AMP_challenge/osi_hackathon/video/s5.png'
+duration 45
+file '/home/obi/AMP_challenge/osi_hackathon/video/s6.png'
+duration 30
+file '/home/obi/AMP_challenge/osi_hackathon/video/s7.png'
+duration 20
+file '/home/obi/AMP_challenge/osi_hackathon/video/s8.png'
+duration 12
+file '/home/obi/AMP_challenge/osi_hackathon/video/s8.png'
