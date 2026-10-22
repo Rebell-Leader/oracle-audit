@@ -42,6 +42,21 @@ Real campaigns do not stop at a hundred. A submission pipeline we examined selec
 50,000 of a 998,452-sequence pool by mean percentile rank of amPEPpy + AMPredictor — roughly 200x
 deeper than the depth at which those oracles still hold precision.
 
+## Why it happens: the oracle is largely a composition detector
+
+If an oracle's verdict is a function of amino-acid composition, shuffles are invisible to it by
+construction — they preserve composition exactly. That is measurable, and it holds: a 21-feature model
+(20 amino-acid frequencies + length) trained to predict **amPEPpy's own binary call** reproduces it at
+**AUROC 0.945** (gradient boosting; 0.868 for a plain logistic regression, which is the version
+embedded in the interactive app). Order carries real but weak signal — the Eisenberg hydrophobic
+moment separates real AMPs from their shuffles at AUROC 0.574 (median 0.303 vs 0.251) — and the
+published oracles sit *below* chance on that same contrast (amPEPpy 0.405, AMPlify 0.417).
+
+One honest nuance: OmegAMP's broad classifier is near chance globally too (AUROC 0.477), because most
+of its scores sit at the numerical floor for both cohorts. Its advantage is concentrated at the top of
+the ranking — 95th percentile 0.994 for real AMPs versus 0.028 for decoys. That is precisely why the
+**depth test, not AUROC, is the diagnostic that separates these oracles**.
+
 ## What this repo gives you
 
 1. **`oracle_audit.py`** — two drop-in diagnostics that run against *any* scorer, not just these:
