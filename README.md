@@ -70,6 +70,20 @@ belongs to the single conventionally-trained family our audit shows is sign-inve
 applies a shuffled-sequence control. *More than one oracle is not more than one oracle family.*
 Screening of the other 25 papers is abstract-level, so "oracle not named" means not stated, not not used.
 
+## Sponsor tracks used
+
+- **Valency (Bond MCP)** — literature grounding; see `lit/valency_claim.md` and `lit/oracle_practice_survey.csv`.
+- **Marimo** — the interactive audit notebook (`app/oracle_audit_app.py`), WASM-exported;
+  live at https://huggingface.co/spaces/avaliev/oracle-audit
+- **Adaption** — a hard-negative oracle fine-tune launched on AutoScientist; see `adaption/README.md`.
+- **Hugging Face** — dataset: https://huggingface.co/datasets/avaliev/oracle-audit-amp-scores
+
+Quick start:
+
+```bash
+python package/oracle_audit.py --scores package/oracle_audit_scores_wide.csv --all
+```
+
 ## Provenance
 
 All cohorts, scores and the depth analysis were produced during the hackathon window on the authors'
