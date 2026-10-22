@@ -1,28 +1,27 @@
-We built Oracle Audit to check the models used to select antimicrobial peptides.
+Our peptide generator could produce a million candidates. Choosing which ones deserved a lab test was the harder problem.
 
-> **Control-cohort correction:** The released known-AMP and shuffle cohorts were
-> sampled from different source files. Only 87 of 2,000 amino-acid compositions
-> overlap. The rates and depth curves below describe those separate cohorts;
-> they do not isolate sequence order. A genuinely paired, rescored experiment
-> is still needed. The explorer does construct an exact shuffle of each input.
-> The AMP/non-AMP cohorts also share 45 exact sequences with conflicting labels.
-> Training-source overlap is documented; exact checkpoint split overlap is unresolved.
+We were searching for **antimicrobial peptides (AMPs)**: short chains of amino acids that can kill microbes. Some disrupt bacterial membranes and work against bacteria resistant to existing antibiotics. We need more effective, safe candidates because [new antibacterial treatments are not keeping up with resistance](https://www.who.int/observatories/global-observatory-on-health-research-and-development/monitoring/antibacterial-products-in-clinical-development-for-priority-pathogens/).
 
+AI helps explore possible sequences. But copying the ingredients and short patterns of known AMPs does not guarantee that a new peptide will work. Their order helps determine how the molecule interacts with a bacterium. A promising candidate also needs to spare human cells—[properties that ultimately require experimental testing](https://www.nature.com/articles/s41467-023-36994-z).
 
-Compare 2,000 known AMPs with 2,000 separately sampled shuffled-AMP sequences.
-At a score threshold of 0.5, amPEPpy calls 87.5% of shuffles positive versus 66.8% of
-known AMPs. AMPlify shows a similar gap. The shuffles are untested controls, not
-confirmed inactive peptides, but the contrast raises a useful question about
-what these scores reward.
+We cannot make and test a million peptides. So we use prediction models, called **oracles**, to choose a shortlist.
 
-A second check plots the fraction of known AMPs as we select more sequences from
-a ranked AMP/shuffle pool. Models that look similar near the top can differ deeper
-in the list.
+**A generator and its judge can make the same mistake.**
 
-For the OSI Hackathon we released 14,977 peptides × 16 model scores, reusable
-diagnostics, and a browser notebook with a sequence explorer and control sampler.
-The explorer uses a composition-only surrogate; its scores do not establish activity.
+A scorer can rely heavily on amino-acid composition. A generator optimising that score can then produce convincing-looking candidates whose activity is still uncertain. Adding several similar judges can leave that blind spot intact.
 
-[Code](https://github.com/Rebell-Leader/oracle-audit) ·
-[Data](https://huggingface.co/datasets/avaliev/oracle-audit-amp-scores) ·
-[App](https://huggingface.co/spaces/avaliev/oracle-audit)
+That is why we built **Oracle Audit** for the OSI Hackathon: a toolkit for checking the scoring models before trusting them to choose experiments.
+
+We released **14,977 sequences scored by 16 models**, reusable audit code, and an interactive browser app. You can:
+
+- **Shuffle a peptide:** keep its ingredients, change their order, and see how its chemical arrangement changes.
+- **Inspect the judge:** compare scores on AMP references and shuffle controls.
+- **Choose a realistic shortlist size:** see whether a model still enriches AMP references when you select hundreds of candidates, rather than just its top 100.
+
+Our initial comparison found that amPEPpy and AMPlify called more of the shuffle cohort positive than the AMP reference cohort. That motivates a closer test: these cohorts were sampled separately and have unresolved label conflicts, so a clean paired experiment comes next.
+
+**Our proposal is to evaluate the generator and its judge together:** use shuffled controls, check training overlap, and measure performance at the depth you actually select. Then validate activity independently.
+
+The aim is practical: help researchers spend their lab budget on candidates with stronger evidence behind them.
+
+[Try the app](https://huggingface.co/spaces/avaliev/oracle-audit) · [Watch the demo](https://github.com/Rebell-Leader/oracle-audit/blob/main/oracle_audit_video_revised.mp4) · [Code](https://github.com/Rebell-Leader/oracle-audit) · [Data](https://huggingface.co/datasets/avaliev/oracle-audit-amp-scores)
