@@ -8,7 +8,7 @@ Submission to the Open Scientific Intelligence (OSI) Hackathon 2026 — bucket: 
 
 Generative AMP design is scored almost entirely by *in-silico oracles*: published AMP classifiers that
 stand in for a wet-lab MIC assay. We audited two families of these oracles against the same
-14,977-sequence cohort set and found that **they disagree in sign on the central validity contrast.**
+14,977-sequence cohort set (9 cohorts, 16 oracles) and found that **they disagree in sign on the central validity contrast.**
 
 At the conventional `p >= 0.5` threshold:
 
@@ -25,14 +25,22 @@ rewarded for reproducing amino-acid composition, not for activity. Hard-negative
 
 ## Why it has gone unnoticed: selection depth
 
-Both families look fine at the depth their own papers report. Screening real AMPs out of a 50/50 pool
-against shuffled decoys, **every oracle reaches precision@100 = 1.00** — and precision@100 is the
-standard reported metric. The families separate only deeper in the ranking: precision falls below 0.75
-at k = 125 (AMPredictor) and k = 342 (amPEPpy), versus k = 729 for OmegAMP's broad classifier.
+The published oracles look strong at the depth their own papers report. Screening real AMPs out of a
+4,000-sequence 50/50 pool against shuffled decoys, amPEPpy reaches precision@100 = 0.92 and AMPlify
+0.90, against 1.00 for OmegAMP's broad classifier (AMPredictor is already at 0.79). Precision@100 is
+the standard reported metric, and at that depth the three look comparable.
 
-Real pipelines select far deeper than k = 100. A submission pipeline we examined selected the top
-50,000 of a 998,452-sequence pool by mean percentile rank of amPEPpy + AMPredictor — a depth at which
-those oracles are near chance on the decoy contrast.
+The families separate deeper in the ranking. Precision falls below 0.75 at **k = 265** (amPEPpy) and
+**k = 240** (AMPlify), versus **k = 691** for OmegAMP's broad classifier — a 2.6x difference in usable
+selection depth, invisible at the depth everyone reports. AMPredictor never clears the floor at all:
+it flags >99% of every cohort, real or shuffled.
+
+Across all 16 oracles the split is clean: **3 of 3 Family-B oracles are sign-inverted; 13 of 13
+Family-A oracles are not.**
+
+Real campaigns do not stop at a hundred. A submission pipeline we examined selected the top
+50,000 of a 998,452-sequence pool by mean percentile rank of amPEPpy + AMPredictor — roughly 200x
+deeper than the depth at which those oracles still hold precision.
 
 ## What this repo gives you
 
@@ -49,6 +57,18 @@ those oracles are near chance on the decoy contrast.
 Deep filtering should use hard-negative-trained classifiers; Phase-1-style published oracles belong only
 in a shallow final re-rank; and every evaluation should hold out one oracle from each family as a
 cross-family control, with a composition-preserving shuffled-decoy cohort reported alongside.
+
+## Literature grounding (Valency Bond)
+
+We used the Valency Bond MCP connector to check how the field actually evaluates generators. Of 45
+screened corpus records, 30 both generate candidate peptides and evaluate them in silico; 28 of those
+30 do not name their evaluation oracle in the abstract, and **0 of 30 mention any decoy or
+composition-preserving shuffled-sequence control**. For the 5 most-cited papers we read the methods:
+all 5 score with their own internal classifier, 2 additionally apply published third-party oracles
+(HydrAMP: AMPlify, CAMPR3-rf, STM; AMP-Designer: CAMP, AMP Scanner, Macrel) — every one of which
+belongs to the single conventionally-trained family our audit shows is sign-inverted — and none
+applies a shuffled-sequence control. *More than one oracle is not more than one oracle family.*
+Screening of the other 25 papers is abstract-level, so "oracle not named" means not stated, not not used.
 
 ## Provenance
 
