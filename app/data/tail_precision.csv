@@ -1,0 +1,7 @@
+oracle,family,prec@100,prec@500,frac_pool_flagged
+broad-classifier,A,1.0,0.872,0.07175
+species-escherichiacoli-classifier,A,1.0,0.798,0.05375
+species-staphylococcusaureus-classifier,A,1.0,0.74,0.04625
+ampeppy,B,0.93,0.612,0.77125
+amplify,B,0.9,0.598,0.7665
+ampredictor,B,0.79,0.642,0.4965
